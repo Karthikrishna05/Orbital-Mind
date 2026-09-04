@@ -68,31 +68,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
- * Deterministic Elliptical Orbit Animation Loop
- * Traces the exact path of <ellipse cx="260" cy="105" rx="210" ry="75">
+ * Deterministic dual-orbit animation for the GEO and MEO tracks.
  */
 function initOrbitAnimation() {
-  const satGroup = document.getElementById('satellite-svg-group');
-  if (!satGroup) return;
+  const geoGroup = document.getElementById('satellite-svg-group');
+  const meoGroup = document.getElementById('satellite-meo-svg-group');
+  if (!geoGroup || !meoGroup) return;
 
   const cx = 260;
   const cy = 105;
-  const rx = 210;
-  const ry = 75;
+  const geoRx = 210;
+  const geoRy = 75;
+  const meoRx = 145;
+  const meoRy = 52;
 
-  let angle = 0;
-  const speed = (2 * Math.PI) / (12 * 60);
+  let geoAngle = 0;
+  let meoAngle = Math.PI * 0.72;
+  const geoSpeed = (2 * Math.PI) / (12 * 60);
+  const meoSpeed = (2 * Math.PI) / (8 * 60);
 
   function animate() {
-    angle += speed;
-    if (angle >= 2 * Math.PI) {
-      angle -= 2 * Math.PI;
-    }
+    geoAngle = (geoAngle + geoSpeed) % (2 * Math.PI);
+    meoAngle = (meoAngle + meoSpeed) % (2 * Math.PI);
 
-    const x = cx + rx * Math.cos(angle);
-    const y = cy + ry * Math.sin(angle);
+    const geoX = cx + geoRx * Math.cos(geoAngle);
+    const geoY = cy + geoRy * Math.sin(geoAngle);
+    const meoX = cx + meoRx * Math.cos(meoAngle);
+    const meoY = cy + meoRy * Math.sin(meoAngle);
 
-    satGroup.setAttribute('transform', `translate(${x.toFixed(2)}, ${y.toFixed(2)})`);
+    geoGroup.setAttribute('transform', `translate(${geoX.toFixed(2)}, ${geoY.toFixed(2)})`);
+    meoGroup.setAttribute('transform', `translate(${meoX.toFixed(2)}, ${meoY.toFixed(2)})`);
 
     requestAnimationFrame(animate);
   }
@@ -482,8 +487,6 @@ async function renderROCChart() {
           }
         },
         y: {
-          suggestedMin: 0.85,
-          suggestedMax: 1.0,
           grid: { color: 'rgba(160, 160, 175, 0.12)' },
           ticks: { color: '#A0A0AA', font: { family: 'JetBrains Mono', size: 11 } },
           title: {
@@ -711,6 +714,7 @@ function initTestDataView() {
       const result = await ApiService.uploadTestData(file, currentOrbit);
       state.testResults[currentOrbit] = result;
       state.testData[currentOrbit].submitted = true;
+      state.currentResultsOrbit = currentOrbit;
 
       submitBtn.innerHTML = `
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -725,9 +729,7 @@ function initTestDataView() {
       `;
       submissionAlert.classList.add('visible');
 
-      if (state.currentResultsOrbit === currentOrbit) {
-        renderResultsForCurrentOrbit();
-      }
+      navigateTo('results');
     } catch (err) {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `Submit ${currentOrbit} Test Data`;
@@ -768,6 +770,8 @@ function initResultsView() {
   const tabShapiro = document.getElementById('res-tab-shapiro');
   const tabMeanSD = document.getElementById('res-tab-meansd');
   const tabQQ = document.getElementById('res-tab-qq');
+  const testAgainBtn = document.getElementById('results-test-again');
+  const homeBtn = document.getElementById('results-home');
 
   const panelShapiro = document.getElementById('panel-shapiro');
   const panelMeanSD = document.getElementById('panel-meansd');
@@ -787,6 +791,8 @@ function initResultsView() {
   tabShapiro.addEventListener('click', () => switchResultsTab('shapiro'));
   tabMeanSD.addEventListener('click', () => switchResultsTab('meansd'));
   tabQQ.addEventListener('click', () => switchResultsTab('qq'));
+  testAgainBtn.addEventListener('click', () => navigateTo('test-data'));
+  homeBtn.addEventListener('click', () => navigateTo('hero'));
 
   const qqBtns = document.querySelectorAll('.qq-param-btn');
   qqBtns.forEach((btn) => {

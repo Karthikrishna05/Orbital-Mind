@@ -348,13 +348,42 @@ html, body {
 .page-view.scrollable .content-card {
   height: auto;
   flex-shrink: 0;
+  overflow: visible;
 }
 .page-view.scrollable .content-card + .content-card {
   margin-top: 16px;
 }
 .page-view.scrollable .chart-container-box {
-  height: 340px;
+  height: clamp(360px, 52vh, 560px);
   flex-shrink: 0;
+}
+
+#view-model-progression {
+  display: none;
+}
+
+#view-model-progression.active {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#view-model-progression.active::-webkit-scrollbar {
+  display: none;
+}
+
+#view-model-progression .content-card {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+#view-model-progression .chart-container-box {
+  height: clamp(420px, 58vh, 620px);
+  flex: 0 0 clamp(420px, 58vh, 620px);
 }
 
 /* Final-model composition (per-channel sub-model contribution) */
@@ -449,9 +478,25 @@ html, body {
 
 .orbit-path {
   fill: none;
-  stroke: rgba(220, 220, 240, 0.35);
-  stroke-width: 1.5;
+  stroke: rgba(220, 220, 240, 0.3);
+  stroke-width: 1.4;
   stroke-dasharray: 6 5;
+}
+
+.orbit-path-meo {
+  stroke: rgba(144, 213, 229, 0.45);
+  stroke-dasharray: 3 5;
+}
+
+.orbit-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  fill: var(--silver-muted);
+}
+
+.orbit-label-meo {
+  fill: var(--pale-cyan-silver);
 }
 
 .orbit-glow-ellipse {
@@ -576,6 +621,22 @@ html, body {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.results-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#results-test-again {
+  border-color: rgba(144, 213, 229, 0.55);
+  color: var(--pale-cyan-silver);
+}
+
+#results-home {
+  border-color: rgba(240, 240, 245, 0.35);
+  color: var(--silver-primary);
 }
 
 .toggle-group {
