@@ -323,25 +323,50 @@ export const GNSS_DATA = {
     // QQ plot: generated from REAL residual mean/std (day8_evaluation.txt).
     // Heavy-tail contamination is proportional to (1 - W) — honest visualisation.
     qqPlotData: {
-      x_error: {
-        title: 'GEO x_error Residuals (Day-8, n=69)',
-        unit: 'm',
-        points: generateQQPoints(-0.1063, 13.8882, 69, 0.8885)
+      GEO: {
+        x_error: {
+          title: 'GEO x_error Residuals (Day-8, n=69)',
+          unit: 'm',
+          points: generateQQPoints(-0.1063, 13.8882, 69, 0.8885)
+        },
+        y_error: {
+          title: 'GEO y_error Residuals (Day-8, n=69)',
+          unit: 'm',
+          points: generateQQPoints(-1.3489, 19.5806, 69, 0.8283)
+        },
+        z_error: {
+          title: 'GEO z_error Residuals (Day-8, n=69)',
+          unit: 'm',
+          points: generateQQPoints(1.4099, 10.8154, 69, 0.8956)
+        },
+        satclockerror: {
+          title: 'GEO satclockerror Residuals (Day-8, n=69)',
+          unit: 'm',
+          points: generateQQPoints(7.9042, 16.7369, 69, 0.7366)
+        }
       },
-      y_error: {
-        title: 'GEO y_error Residuals (Day-8, n=69)',
-        unit: 'm',
-        points: generateQQPoints(-1.3489, 19.5806, 69, 0.8283)
-      },
-      z_error: {
-        title: 'GEO z_error Residuals (Day-8, n=69)',
-        unit: 'm',
-        points: generateQQPoints(1.4099, 10.8154, 69, 0.8956)
-      },
-      satclockerror: {
-        title: 'GEO satclockerror Residuals (Day-8, n=69)',
-        unit: 'm',
-        points: generateQQPoints(7.9042, 16.7369, 69, 0.7366)
+      // MEO channel stats = average of MEO1 & MEO2 (n=6 pts each, per day8_evaluation.txt)
+      MEO: {
+        x_error: {
+          title: 'MEO x_error Residuals (Day-8, n=6)',
+          unit: 'm',
+          points: generateQQPoints(-0.0067, 0.1372, 6, 0.9288)
+        },
+        y_error: {
+          title: 'MEO y_error Residuals (Day-8, n=6)',
+          unit: 'm',
+          points: generateQQPoints(0.0084, 0.0992, 6, 0.9452)
+        },
+        z_error: {
+          title: 'MEO z_error Residuals (Day-8, n=6)',
+          unit: 'm',
+          points: generateQQPoints(-0.0334, 0.0906, 6, 0.9833)
+        },
+        satclockerror: {
+          title: 'MEO satclockerror Residuals (Day-8, n=6)',
+          unit: 'm',
+          points: generateQQPoints(0.0197, 0.0452, 6, 0.9253)
+        }
       }
     }
   }

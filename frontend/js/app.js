@@ -16,6 +16,7 @@ const state = {
     MEO: { file: null, submitted: false }
   },
   currentTestOrbit: 'GEO',
+  currentResultsOrbit: 'GEO',
   activeResultTab: 'shapiro',
   activeQQParam: 'x_error',
   resultsDataCache: null
@@ -613,6 +614,9 @@ function initTestDataView() {
    PAGE 5: RESULTS
    ========================================================================== */
 function initResultsView() {
+  const orbitGeoToggle = document.getElementById('res-toggle-geo');
+  const orbitMeoToggle = document.getElementById('res-toggle-meo');
+
   const tabShapiro = document.getElementById('res-tab-shapiro');
   const tabMeanSD = document.getElementById('res-tab-meansd');
   const tabQQ = document.getElementById('res-tab-qq');
@@ -620,6 +624,17 @@ function initResultsView() {
   const panelShapiro = document.getElementById('panel-shapiro');
   const panelMeanSD = document.getElementById('panel-meansd');
   const panelQQ = document.getElementById('panel-qq');
+
+  function switchResultsOrbit(orbit) {
+    if (state.currentResultsOrbit === orbit) return;
+    state.currentResultsOrbit = orbit;
+    orbitGeoToggle.classList.toggle('active', orbit === 'GEO');
+    orbitMeoToggle.classList.toggle('active', orbit === 'MEO');
+    renderResultsForCurrentOrbit();
+  }
+
+  orbitGeoToggle.addEventListener('click', () => switchResultsOrbit('GEO'));
+  orbitMeoToggle.addEventListener('click', () => switchResultsOrbit('MEO'));
 
   tabShapiro.addEventListener('click', () => switchResultsTab('shapiro'));
   tabMeanSD.addEventListener('click', () => switchResultsTab('meansd'));
@@ -659,8 +674,17 @@ async function loadResultsData() {
   if (!state.resultsDataCache) {
     state.resultsDataCache = await ApiService.fetchResultsData();
   }
-  populateShapiroTable(state.resultsDataCache.shapiroWilk);
-  populateMeanSDTable(state.resultsDataCache.meanAndSD);
+  renderResultsForCurrentOrbit();
+}
+
+function renderResultsForCurrentOrbit() {
+  if (!state.resultsDataCache) return;
+  const orbit = state.currentResultsOrbit;
+  const filterByOrbit = (rows = []) =>
+    rows.filter((row) => row.parameter.includes(orbit));
+
+  populateShapiroTable(filterByOrbit(state.resultsDataCache.shapiroWilk));
+  populateMeanSDTable(filterByOrbit(state.resultsDataCache.meanAndSD));
   if (state.activeResultTab === 'qq') {
     renderQQChart(state.activeQQParam);
   }
@@ -717,7 +741,7 @@ function renderQQChart(param = 'x_error') {
   const ctx = document.getElementById('qq-chart');
   if (!ctx || !state.resultsDataCache) return;
 
-  const qqData = state.resultsDataCache.qqPlotData[param];
+  const qqData = state.resultsDataCache.qqPlotData[state.currentResultsOrbit]?.[param];
   if (!qqData) return;
 
   const theoreticals = qqData.points.map((p) => p.theoretical);

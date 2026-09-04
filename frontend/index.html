@@ -314,10 +314,17 @@
               <div class="card-subtitle">Comprehensive error distribution analysis against ground truth ephemeris</div>
             </div>
 
-            <div class="toggle-group" role="group" aria-label="Results Metric Type Toggle">
-              <button id="res-tab-shapiro" class="toggle-btn active" type="button">Shapiro-Wilk</button>
-              <button id="res-tab-meansd" class="toggle-btn" type="button">Mean &amp; SD</button>
-              <button id="res-tab-qq" class="toggle-btn" type="button">Q-Q Plot</button>
+            <div class="results-header-controls">
+              <div class="toggle-group" role="group" aria-label="Results Satellite Orbit Toggle">
+                <button id="res-toggle-geo" class="toggle-btn active" type="button">GEO</button>
+                <button id="res-toggle-meo" class="toggle-btn" type="button">MEO</button>
+              </div>
+
+              <div class="toggle-group" role="group" aria-label="Results Metric Type Toggle">
+                <button id="res-tab-shapiro" class="toggle-btn active" type="button">Shapiro-Wilk</button>
+                <button id="res-tab-meansd" class="toggle-btn" type="button">Mean &amp; SD</button>
+                <button id="res-tab-qq" class="toggle-btn" type="button">Q-Q Plot</button>
+              </div>
             </div>
           </div>
 
