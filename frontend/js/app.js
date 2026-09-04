@@ -192,7 +192,10 @@ export function navigateTo(route) {
   if (targetRoute === 'train-data') {
     updateTrainView();
   } else if (targetRoute === 'model-progression') {
-    renderROCChart(state.rocMetric);
+    // Render composition first — it has no chart dependency, so it always
+    // populates even if the Chart.js CDN is unavailable.
+    renderComposition();
+    renderROCChart();
   } else if (targetRoute === 'results') {
     loadResultsData();
   }
@@ -242,6 +245,13 @@ function renderTrainChart(dataset) {
     trainChartInstance.destroy();
   }
 
+  // Real training dumps have many points across 7 days; thin the markers so the
+  // full-window trend stays readable (representative fallback has only 7 points).
+  const nPts = (dataset.timestamps || []).length;
+  const dense = nPts > 30;
+  const ptRadius = dense ? 0 : 4;
+  const ptHover = dense ? 4 : 7;
+
   // @ts-ignore
   trainChartInstance = new Chart(ctx, {
     type: 'line',
@@ -259,12 +269,12 @@ function renderTrainChart(dataset) {
           pointBackgroundColor: '#F0F0F8',
           pointBorderColor: '#000000',
           pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: ptRadius,
+          pointHoverRadius: ptHover,
           yAxisID: 'y'
         },
         {
-          label: 'Clock Bias Error (ns)',
+          label: 'Clock Bias Error (m)',
           data: dataset.clockBiasError,
           borderColor: '#90D5E5',
           backgroundColor: 'rgba(144, 213, 229, 0.04)',
@@ -275,8 +285,8 @@ function renderTrainChart(dataset) {
           pointBackgroundColor: '#90D5E5',
           pointBorderColor: '#000000',
           pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: ptRadius,
+          pointHoverRadius: ptHover,
           yAxisID: 'y1'
         }
       ]
@@ -313,7 +323,7 @@ function renderTrainChart(dataset) {
           ticks: { color: '#A0A0AA', font: { family: 'JetBrains Mono', size: 11 } },
           title: {
             display: true,
-            text: 'Observation Time (UTC / 24h cycle)',
+            text: 'Training Observation Time (7-day window)',
             color: '#8A8A98',
             font: { size: 11, family: 'Space Grotesk' }
           }
@@ -339,7 +349,7 @@ function renderTrainChart(dataset) {
           ticks: { color: '#90D5E5', font: { family: 'JetBrains Mono', size: 11 } },
           title: {
             display: true,
-            text: 'Clock Bias Error (ns)',
+            text: 'Clock Bias Error (m)',
             color: '#90D5E5',
             font: { size: 11, family: 'Space Grotesk', weight: '600' }
           }
@@ -353,46 +363,48 @@ function renderTrainChart(dataset) {
    PAGE 3: MODEL PROGRESSION
    ========================================================================== */
 function initROCView() {
-  const metricBtns = document.querySelectorAll('.roc-metric-btn');
-  metricBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const metric = btn.getAttribute('data-metric');
-      state.rocMetric = metric;
-      metricBtns.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderROCChart(metric);
-    });
-  });
+  // Progression is now a single Shapiro-Wilk W view (metric toggle removed);
+  // nothing to wire here beyond the render triggered on navigation.
 }
 
-async function renderROCChart(metric = 'sw') {
+// Benchmark from the competition Note (target residual-normality W).
+const SW_BENCHMARK = 0.981;
+
+// Verdict per phase, derived from the authored ✅/⚠️/❌ markers already present
+// in each phase's reductionPct / description (no fabricated values).
+function phaseVerdict(item) {
+  const s = `${item.reductionPct || ''} ${item.description || ''}`;
+  if (s.includes('❌') || /reject(ed)?|spread-gamer/i.test(s)) return 'fail';
+  if (s.includes('⚠️') || /partial/i.test(s)) return 'partial';
+  if (s.includes('✅') || /\bpass\b/i.test(s)) return 'pass';
+  return 'progress';
+}
+
+const VERDICT_COLOR = {
+  pass:     { bar: 'rgba(126, 224, 160, 0.35)', border: '#7ee0a0' },
+  partial:  { bar: 'rgba(224, 192, 126, 0.35)', border: '#e0c07e' },
+  fail:     { bar: 'rgba(224, 138, 138, 0.32)', border: '#e08a8a' },
+  progress: { bar: 'rgba(200, 200, 220, 0.20)', border: '#c8c8dc' }
+};
+
+const VERDICT_LABEL = {
+  pass: 'PASS — H₀ not rejected (residuals Gaussian)',
+  partial: 'PARTIAL — some channels non-normal',
+  fail: 'REJECT / rejected iteration',
+  progress: 'Progression step'
+};
+
+async function renderROCChart() {
   const ctx = document.getElementById('roc-chart');
   if (!ctx) return;
 
   const data = await ApiService.fetchROCData();
   const iterations = data.iterations;
   const labels = iterations.map((item) => item.name);
-
-  let dataValues = [];
-  let metricLabel = '';
-  let borderColor = '#E8E8F5';
-  let bgColor = 'rgba(232, 232, 245, 0.15)';
-  let yAxisTitle = '';
-
-  if (metric === 'sw') {
-    dataValues = iterations.map((i) => i.swW);
-    metricLabel = 'Shapiro-Wilk W Statistic (higher = more Gaussian residuals)';
-    borderColor = '#E8E8F5';
-    bgColor = 'rgba(232, 232, 245, 0.18)';
-    yAxisTitle = 'SW W Statistic (benchmark = 0.9810)';
-  } else {
-    // 'rms' -> residual std in metres
-    dataValues = iterations.map((i) => i.rmsError);
-    metricLabel = 'Avg 4-Channel Residual Std (m) — lower = tighter residuals';
-    borderColor = '#90D5E5';
-    bgColor = 'rgba(144, 213, 229, 0.18)';
-    yAxisTitle = 'Residual Std (m)';
-  }
+  const dataValues = iterations.map((i) => i.swW);
+  const verdicts = iterations.map(phaseVerdict);
+  const barColors = verdicts.map((v) => VERDICT_COLOR[v].bar);
+  const barBorders = verdicts.map((v) => VERDICT_COLOR[v].border);
 
   if (rocChartInstance) {
     rocChartInstance.destroy();
@@ -406,24 +418,22 @@ async function renderROCChart(metric = 'sw') {
       datasets: [
         {
           type: 'bar',
-          label: metricLabel,
+          label: 'Shapiro-Wilk W (higher = more Gaussian residuals)',
           data: dataValues,
-          backgroundColor: bgColor,
-          borderColor: borderColor,
+          backgroundColor: barColors,
+          borderColor: barBorders,
           borderWidth: 1.5,
           borderRadius: 5,
           barPercentage: 0.52
         },
         {
           type: 'line',
-          label: 'Progression Trendline',
-          data: dataValues,
-          borderColor: borderColor,
-          borderWidth: 2.2,
-          pointBackgroundColor: '#FFFFFF',
-          pointBorderColor: borderColor,
-          pointRadius: 5,
-          tension: 0.25,
+          label: `Benchmark W = ${SW_BENCHMARK.toFixed(3)}`,
+          data: dataValues.map(() => SW_BENCHMARK),
+          borderColor: '#90D5E5',
+          borderWidth: 1.8,
+          borderDash: [6, 4],
+          pointRadius: 0,
           fill: false
         }
       ]
@@ -443,14 +453,21 @@ async function renderROCChart(metric = 'sw') {
           backgroundColor: 'rgba(10, 10, 14, 0.95)',
           titleColor: '#F0F0F5',
           bodyColor: '#C0C0C8',
-          borderColor: borderColor,
+          borderColor: 'rgba(200, 200, 220, 0.3)',
           borderWidth: 1,
           padding: 12,
           callbacks: {
+            label: function (context) {
+              if (context.datasetIndex === 0) {
+                return `W = ${Number(context.parsed.y).toFixed(3)}`;
+              }
+              return `Benchmark W = ${SW_BENCHMARK.toFixed(3)}`;
+            },
             afterBody: function (context) {
               const idx = context[0].dataIndex;
               const item = iterations[idx];
-              return `\nArchitecture: ${item.description}\nImprovement: ${item.reductionPct} error reduction`;
+              const v = phaseVerdict(item);
+              return `\nVerdict: ${VERDICT_LABEL[v]}\nArchitecture: ${item.description}\nOutcome: ${item.reductionPct}`;
             }
           }
         }
@@ -465,11 +482,13 @@ async function renderROCChart(metric = 'sw') {
           }
         },
         y: {
+          suggestedMin: 0.85,
+          suggestedMax: 1.0,
           grid: { color: 'rgba(160, 160, 175, 0.12)' },
           ticks: { color: '#A0A0AA', font: { family: 'JetBrains Mono', size: 11 } },
           title: {
             display: true,
-            text: yAxisTitle,
+            text: 'Shapiro-Wilk W  (benchmark = 0.981; higher = more Gaussian)',
             color: '#C0C0C8',
             font: { size: 11, family: 'Space Grotesk' }
           }
@@ -477,6 +496,116 @@ async function renderROCChart(metric = 'sw') {
       }
     }
   });
+}
+
+/* Final-model composition: per channel, which sub-model produces it and the
+   residual normality (W, p, H, Gaussian verdict) from the real evaluation dump. */
+const COMPOSITION_ARCH = {
+  GEO: {
+    model: 'composite_pos_clock',
+    channels: {
+      x_error: 'Stacked Harmonic (p1h1 base + p1h3 residual)',
+      y_error: 'Stacked Harmonic (p1h1 base + p1h3 residual)',
+      z_error: 'Stacked Harmonic (p1h1 base + p1h3 residual)',
+      satclockerror: 'Segmented Clock (change-point Kalman)'
+    }
+  },
+  MEO1: {
+    model: 'ensemble_median',
+    channels: {
+      x_error: 'Ensemble Median (harmonic-p2h2 · auto-harmonic-np3h2 · GBR-Huber)',
+      y_error: 'Ensemble Median (harmonic-p2h2 · auto-harmonic-np3h2 · GBR-Huber)',
+      z_error: 'Ensemble Median (harmonic-p2h2 · auto-harmonic-np3h2 · GBR-Huber)',
+      satclockerror: 'Ensemble Median (harmonic-p2h2 · auto-harmonic-np3h2 · GBR-Huber)'
+    }
+  },
+  MEO2: {
+    model: 'composite_pos_clock',
+    channels: {
+      x_error: 'Stacked Harmonic (p1h1 base + p1h3 residual)',
+      y_error: 'Stacked Harmonic (p1h1 base + p1h3 residual)',
+      z_error: 'Stacked Harmonic (p1h1 base + p1h3 residual)',
+      satclockerror: 'Segmented Clock (change-point Kalman)'
+    }
+  }
+};
+
+const CHANNEL_LABEL = {
+  x_error: 'x_error (Radial)',
+  y_error: 'y_error (Along-Track)',
+  z_error: 'z_error (Cross-Track)',
+  satclockerror: 'satclockerror (Clock)'
+};
+
+function renderComposition() {
+  const container = document.getElementById('composition-container');
+  if (!container) return;
+
+  const dyn = window.DYNAMIC_GNSS_RESULTS;
+  if (!dyn) {
+    container.innerHTML = `<p style="color: var(--silver-secondary); font-size: 0.82rem;">
+      Per-channel normality unavailable — run <code>python scripts/evaluate_day8.py</code> to generate it.</p>`;
+    return;
+  }
+
+  const orbits = ['GEO', 'MEO1', 'MEO2'].filter((o) => dyn[o]);
+  container.innerHTML = orbits.map((orbit) => {
+    const arch = COMPOSITION_ARCH[orbit];
+    const chans = dyn[orbit].channels || {};
+    const rows = Object.keys(CHANNEL_LABEL).map((param) => {
+      const c = chans[param];
+      if (!c) return '';
+      const gaussian = c.H === 0
+        ? '<span class="gaussian-yes">Gaussian ✅</span>'
+        : '<span class="gaussian-no">Non-Gaussian ❌</span>';
+      return `
+        <tr>
+          <td style="font-weight:600;">${CHANNEL_LABEL[param]}</td>
+          <td style="color: var(--silver-secondary); font-size: 0.78rem;">${arch.channels[param]}</td>
+          <td>${c.W.toFixed(4)}</td>
+          <td>${c.p.toFixed(4)}</td>
+          <td>${c.H}</td>
+          <td>${gaussian}</td>
+        </tr>`;
+    }).join('');
+
+    const agg = dyn[orbit].aggregate;
+    const aggGauss = agg.H === 0
+      ? '<span class="gaussian-yes">Gaussian ✅</span>'
+      : (agg.H < 1 ? '<span style="color:#e0c07e;font-weight:600;">Partial ⚠️</span>'
+                   : '<span class="gaussian-no">Non-Gaussian ❌</span>');
+
+    return `
+      <div class="composition-group">
+        <div class="composition-group-title">${orbit}</div>
+        <div class="composition-group-model">Final model: <code>${arch.model}</code></div>
+        <div class="table-responsive">
+          <table class="gnss-table">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Sub-model (component)</th>
+                <th>W</th>
+                <th>p</th>
+                <th>H</th>
+                <th>Gaussian nature</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+              <tr class="aggregate-row">
+                <td style="font-weight:700;">Aggregate (4-channel)</td>
+                <td style="color: var(--silver-secondary); font-size: 0.78rem;">composite</td>
+                <td>${agg.W.toFixed(4)}</td>
+                <td>${agg.p.toFixed(4)}</td>
+                <td>${agg.H.toFixed(2)}</td>
+                <td>${aggGauss}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 /* ==========================================================================

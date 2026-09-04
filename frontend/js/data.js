@@ -26,39 +26,39 @@ export const API_CONFIG = {
 // ─────────────────────────────────────────────────────────────────────────────
 export const GNSS_DATA = {
 
+  // ── Train Data: 7-DAY TRAINING WINDOW ────────────────────────────────────
+  // These are a REPRESENTATIVE offline fallback describing the 7-day training
+  // set (NOT the day-8 test period). For the real per-observation training data
+  // and stats, run `python scripts/export_train_data.py`, which writes
+  // frontend/js/dynamic_train_data.js and is preferred automatically when present.
   trainData: {
     GEO: {
       orbitType: 'Geostationary Orbit (GEO — ~35,786 km)',
-      timestamps: [
-        '00:00', '02:00', '04:00', '06:00', '08:00', '10:00',
-        '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '24:00'
-      ],
-      // Representative magnitudes from actual GEO residual std (~15 m range)
-      ephemerisError: [12.4, 8.1, 5.3, 7.8, 13.9, 16.2, 14.5, 10.8, 6.9, 9.4, 15.1, 13.7, 11.2],
-      clockBiasError: [18.3, 14.2, 9.6, 11.5, 19.8, 22.4, 20.1, 15.7, 10.3, 13.8, 21.0, 17.9, 16.1],
+      // 7-day training window (representative; one label per day)
+      timestamps: ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'],
+      // Representative daily-mean 3D position-error magnitude across training
+      ephemerisError: [10.8, 12.4, 9.6, 13.1, 11.5, 10.2, 12.9],
+      clockBiasError: [14.2, 16.1, 12.8, 17.4, 15.0, 13.6, 16.9],
       stats: {
-        meanEphemeris: '~11.2 m (range -75 to +58 m incl. upload spikes)',
-        maxEphemeris:  '±58 m (GEO upload-spike outliers, Day-8)',
-        meanClockBias: '16.7 m residual std (clock channel, Day-8)',
-        rmsError:      '15.3 m avg residual std (4-channel avg, Day-8)',
-        satellitesTracked: '1 GEO SV | 142 train pts | 69 test pts'
+        meanEphemeris: '≈11.5 m (3D position error, training)',
+        maxEphemeris:  '≈16 m peak (training)',
+        meanClockBias: '≈15 m (|clock| mean, training)',
+        rmsError:      '≈12 m composite 3D RMS (training)',
+        satellitesTracked: '1 GEO SV | 142 train pts | 7-day window (representative)'
       }
     },
     MEO: {
       orbitType: 'Medium Earth Orbit (MEO — ~20,200 km)',
-      timestamps: [
-        '00:00', '02:00', '04:00', '06:00', '08:00', '10:00',
-        '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '24:00'
-      ],
-      // MEO1 residuals are sub-meter — actual std ~0.22 m
-      ephemerisError: [0.42, 0.18, 0.31, 0.55, 0.38, 0.27, 0.19, 0.44, 0.61, 0.35, 0.23, 0.49, 0.36],
-      clockBiasError: [0.28, 0.41, 0.19, 0.35, 0.52, 0.23, 0.38, 0.29, 0.44, 0.31, 0.47, 0.22, 0.34],
+      timestamps: ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'],
+      // MEO training errors are sub-meter
+      ephemerisError: [0.31, 0.24, 0.38, 0.29, 0.35, 0.27, 0.33],
+      clockBiasError: [0.22, 0.19, 0.26, 0.21, 0.24, 0.18, 0.23],
       stats: {
-        meanEphemeris: '~0.22 m residual std (MEO1, Day-8)',
-        maxEphemeris:  '~0.40 m peak (MEO1 x-channel, Day-8)',
-        meanClockBias: '~0.24 m residual std (MEO1 clock, Day-8)',
-        rmsError:      '0.22 m avg residual std (MEO1, Day-8)',
-        satellitesTracked: '2 MEO SVs | MEO1: 46 pts | MEO2: 143 pts'
+        meanEphemeris: '≈0.32 m (3D position error, training)',
+        maxEphemeris:  '≈0.40 m peak (training)',
+        meanClockBias: '≈0.22 m (|clock| mean, training)',
+        rmsError:      '≈0.33 m composite 3D RMS (training)',
+        satellitesTracked: '2 MEO SVs | 189 train pts | 7-day window (representative)'
       }
     }
   },
@@ -393,6 +393,10 @@ export const ApiService = {
   },
 
   async fetchTrainData(orbit = 'GEO') {
+    // Prefer the real 7-day training dump (scripts/export_train_data.py) if present.
+    if (window.DYNAMIC_TRAIN_DATA && window.DYNAMIC_TRAIN_DATA[orbit]) {
+      return window.DYNAMIC_TRAIN_DATA[orbit];
+    }
     if (API_CONFIG.isLive) {
       try {
         const res = await fetch(`${API_CONFIG.baseUrl}/train-data?orbit=${orbit}`);
