@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrbitalMind — GNSS Satellite Error Prediction</title>
+  <meta name="description" content="Physics-aware ensemble machine learning system for high-precision GNSS ephemeris and clock error prediction across GEO and MEO satellite constellations." />
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23000000%22 stroke=%22%23e8e8ed%22 stroke-width=%228%22/><circle cx=%2250%22 cy=%2250%22 r=%2216%22 fill=%22%23e8e8ed%22/><ellipse cx=%2250%22 cy=%2250%22 rx=%2238%22 ry=%2216%22 fill=%22none%22 stroke=%22%23c0c0c8%22 stroke-width=%224%22 stroke-dasharray=%226,6%22/></svg>">
+
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <canvas id="starfield-canvas"></canvas>
+
+  <div id="app-root">
+
+    <!-- GLOBAL HEADER -->
+    <header id="global-header" class="global-header hero-mode">
+      <div class="header-left">
+        <button id="hamburger-btn" class="hamburger-btn" aria-label="Toggle Navigation Menu">
+          <span class="line"></span>
+          <span class="line"></span>
+          <span class="line"></span>
+        </button>
+
+        <div id="api-status-badge" class="api-status-badge" title="Backend API Integration Status">
+          <span class="api-status-dot"></span>
+          <span id="api-status-text">API: Standalone Mode</span>
+        </div>
+      </div>
+
+      <a href="#hero" class="header-logo" title="OrbitalMind Home">
+        <span class="logo-dot"></span>
+        OrbitalMind
+      </a>
+    </header>
+
+    <!-- DRAWER NAVIGATION -->
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+    <nav id="drawer-nav" class="drawer-nav" aria-label="Main Navigation">
+      <div class="drawer-heading">Navigation Menu</div>
+      <ul class="drawer-links">
+        <li>
+          <a href="#hero" class="drawer-link" data-route="hero">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Home
+          </a>
+        </li>
+        <li>
+          <a href="#train-data" class="drawer-link" data-route="train-data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"></path>
+              <path d="m19 9-5 5-4-4-3 3"></path>
+            </svg>
+            Train Data
+          </a>
+        </li>
+        <li>
+          <a href="#model-progression" class="drawer-link" data-route="model-progression">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            Model Progression
+          </a>
+        </li>
+        <li>
+          <a href="#test-data" class="drawer-link" data-route="test-data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Test Data
+          </a>
+        </li>
+        <li>
+          <a href="#results" class="drawer-link" data-route="results">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            Results
+          </a>
+        </li>
+      </ul>
+
+      <div class="drawer-footer">
+        <div>ORBITAL-MIND v2.4.0</div>
+        <div style="color: var(--silver-bright);">GNSS Physics Ensemble</div>
+      </div>
+    </nav>
+
+    <!-- PAGE VIEWS CONTAINER -->
+    <main class="main-content">
+
+      <!-- PAGE 1: HERO -->
+      <section id="view-hero" class="page-view active">
+        <div class="hero-badge">
+          <span style="display:inline-block; width:6px; height:6px; background:var(--silver-bright); border-radius:50%;"></span>
+          GNSS Orbit &amp; Clock Error Modeling
+        </div>
+
+        <h1 class="hero-title">OrbitalMind</h1>
+
+        <!-- Orbit Stage SVG with Exact Math Coordinates -->
+        <div class="orbit-stage" aria-label="Animated GNSS Orbit Illustration">
+          <svg id="orbit-svg" class="orbit-svg" viewBox="0 0 520 210">
+            <!-- Glow background ellipse -->
+            <ellipse cx="260" cy="105" rx="210" ry="75" class="orbit-glow-ellipse"></ellipse>
+            <!-- Visible Orbit Path Line (cx=260, cy=105, rx=210, ry=75) -->
+            <ellipse id="visible-orbit-ellipse" cx="260" cy="105" rx="210" ry="75" class="orbit-path"></ellipse>
+
+            <!-- Central Earth Group centered at (260, 105) -->
+            <g transform="translate(260, 105)" title="Earth Planet Center">
+              <circle r="38" fill="none" stroke="rgba(220, 220, 240, 0.25)" stroke-width="1.2">
+                <animate attributeName="r" values="36;42;36" dur="4s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.4;0.8;0.4" dur="4s" repeatCount="indefinite" />
+              </circle>
+              
+              <circle r="32" fill="url(#earthGradient)" stroke="rgba(220, 220, 235, 0.3)" stroke-width="1.2" />
+              
+              <g stroke="rgba(240, 240, 255, 0.75)" stroke-width="1.2" fill="none">
+                <circle r="32" stroke="rgba(255, 255, 255, 0.15)"></circle>
+                <line x1="-32" y1="0" x2="32" y2="0"></line>
+                <path d="M 0 -32 A 32 32 0 0 1 0 32 A 32 32 0 0 1 0 -32"></path>
+                <path d="M -16 -27 A 32 32 0 0 0 -16 27" stroke-dasharray="3,3"></path>
+                <path d="M 16 -27 A 32 32 0 0 0 16 27" stroke-dasharray="3,3"></path>
+              </g>
+            </g>
+
+            <!-- Satellite Group (Animated via JS to stay 100% on ellipse cx=260, cy=105, rx=210, ry=75) -->
+            <g id="satellite-svg-group">
+              <circle r="12" fill="rgba(240, 240, 255, 0.25)" filter="blur(2px)"></circle>
+              <circle r="4" fill="#FFFFFF"></circle>
+              <g stroke="#FFFFFF" stroke-width="1.6" fill="none" transform="scale(0.85)">
+                <rect x="-5" y="-5" width="10" height="10" rx="1.5" fill="#12121A" stroke="#FFFFFF" stroke-width="1.5"></rect>
+                <line x1="-15" y1="0" x2="-5" y2="0" stroke-width="2"></line>
+                <rect x="-17" y="-4" width="6" height="8" rx="1" fill="rgba(200,200,230,0.3)" stroke="#FFFFFF" stroke-width="1.2"></rect>
+                <line x1="5" y1="0" x2="15" y2="0" stroke-width="2"></line>
+                <rect x="11" y="-4" width="6" height="8" rx="1" fill="rgba(200,200,230,0.3)" stroke="#FFFFFF" stroke-width="1.2"></rect>
+              </g>
+            </g>
+
+            <defs>
+              <radialGradient id="earthGradient" cx="35%" cy="35%" r="65%">
+                <stop offset="0%" stop-color="#4A5568" />
+                <stop offset="60%" stop-color="#1A202C" />
+                <stop offset="100%" stop-color="#080C14" />
+              </radialGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <p class="hero-description">
+          Physics-aware ensemble machine learning framework predicting GNSS broadcast ephemeris 
+          and atomic clock drift errors for Geostationary (GEO) and Medium Earth Orbit (MEO) satellite constellations 
+          with sub-meter orbital precision.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#test-data" class="btn-primary" id="hero-btn-test-data">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Test Data
+          </a>
+          <a href="#train-data" class="btn-secondary">
+            View Train Data &rarr;
+          </a>
+        </div>
+      </section>
+
+      <!-- PAGE 2: VIEW TRAIN DATA -->
+      <section id="view-train-data" class="page-view">
+        <div class="content-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <h2 class="card-title">Training Data Error Trends</h2>
+              <div class="card-subtitle" id="stat-orbit-type">Geostationary Orbit (GEO - ~35,786 km)</div>
+            </div>
+
+            <div class="toggle-group" role="group" aria-label="Satellite Orbit Regime Toggle">
+              <button id="train-toggle-geo" class="toggle-btn active" type="button">GEO</button>
+              <button id="train-toggle-meo" class="toggle-btn" type="button">MEO</button>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-pill">
+              <span class="stat-label">Mean Ephemeris Error</span>
+              <span class="stat-value" id="stat-mean-eph">1.74 m</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Peak Ephemeris Deviation</span>
+              <span class="stat-value" id="stat-max-eph">2.15 m</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Mean Clock Bias</span>
+              <span class="stat-value" id="stat-mean-clk">3.97 ns</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Composite 3D RMS</span>
+              <span class="stat-value" id="stat-rms-err">1.81 m</span>
+            </div>
+          </div>
+
+          <div class="chart-container-box">
+            <canvas id="train-chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 3: MODEL PROGRESSION -->
+      <section id="view-model-progression" class="page-view">
+        <div class="content-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <h2 class="card-title">Model Progression</h2>
+              <div class="card-subtitle">Tracking iteration-over-iteration error reduction across architectures</div>
+            </div>
+
+            <div class="toggle-group" role="group" aria-label="Performance Metric Toggle">
+              <button class="toggle-btn roc-metric-btn active" data-metric="rms" type="button">3D RMS Error</button>
+              <button class="toggle-btn roc-metric-btn" data-metric="clock" type="button">Clock Drift RMS</button>
+            </div>
+          </div>
+
+          <div class="chart-container-box">
+            <canvas id="roc-chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 4: TEST DATA -->
+      <section id="view-test-data" class="page-view">
+        <div class="content-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <h2 class="card-title">Test Data Ingestion</h2>
+              <div class="card-subtitle">Upload telemetry files for real-time model inference</div>
+            </div>
+
+            <div class="toggle-group" role="group" aria-label="Test Data Context Switcher">
+              <button id="test-toggle-geo" class="toggle-btn active" type="button">GEO</button>
+              <button id="test-toggle-meo" class="toggle-btn" type="button">MEO</button>
+            </div>
+          </div>
+
+          <div class="upload-container">
+            <p class="upload-instruction" id="test-description-text">
+              Insert <strong>GEO</strong> test data (SP3/RINEX ephemeris &amp; clock telemetry):
+            </p>
+
+            <div class="dropzone-area" id="test-dropzone">
+              <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                <path d="M12 12v9"></path>
+                <path d="m16 16-4-4-4 4"></path>
+              </svg>
+              <div class="dropzone-label">Click or Drag &amp; Drop Telemetry File Here</div>
+              <div class="dropzone-hint">Supported formats: .csv, .sp3, .clk, .rinex, .dat</div>
+              <input type="file" id="test-file-input" class="file-input-hidden" accept=".csv,.sp3,.clk,.rinex,.dat,.txt" />
+            </div>
+
+            <button id="test-submit-btn" class="submit-btn" disabled type="button">
+              Submit GEO Test Data
+            </button>
+
+            <div id="test-file-status" class="file-status-card">
+              <div class="file-info-group">
+                <div class="file-icon-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                </div>
+                <div>
+                  <div id="test-file-name" class="file-name-text">filename.csv</div>
+                  <div id="test-file-meta" class="file-meta-text">GEO Telemetry • Ready</div>
+                </div>
+              </div>
+
+              <button id="btn-remove-file" class="btn-remove-file" title="Remove file" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div id="test-submission-alert" class="submission-alert"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 5: RESULTS -->
+      <section id="view-results" class="page-view">
+        <div class="content-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <h2 class="card-title">Statistical Verification &amp; Residual Diagnostics</h2>
+              <div class="card-subtitle">Comprehensive error distribution analysis against ground truth ephemeris</div>
+            </div>
+
+            <div class="toggle-group" role="group" aria-label="Results Metric Type Toggle">
+              <button id="res-tab-shapiro" class="toggle-btn active" type="button">Shapiro-Wilk</button>
+              <button id="res-tab-meansd" class="toggle-btn" type="button">Mean &amp; SD</button>
+              <button id="res-tab-qq" class="toggle-btn" type="button">Q-Q Plot</button>
+            </div>
+          </div>
+
+          <div id="panel-shapiro" class="results-panel active">
+            <div class="table-responsive">
+              <table class="gnss-table">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>W Statistic</th>
+                    <th>p-value</th>
+                    <th>Hypothesis Result (H₀)</th>
+                    <th>Diagnostic Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="shapiro-table-body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="panel-meansd" class="results-panel">
+            <div class="table-responsive">
+              <table class="gnss-table">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Unit</th>
+                    <th>Mean (μ)</th>
+                    <th>Std Dev (σ)</th>
+                    <th>95% Conf. Interval</th>
+                    <th>Max Residual</th>
+                  </tr>
+                </thead>
+                <tbody id="meansd-table-body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="panel-qq" class="results-panel">
+            <div class="qq-selector-row">
+              <span style="font-size:0.75rem; color:var(--silver-muted); font-family:var(--font-mono);">SELECT PARAMETER:</span>
+              <button class="qq-param-btn active" data-param="x_error" type="button">x_error (Radial)</button>
+              <button class="qq-param-btn" data-param="y_error" type="button">y_error (Along-Track)</button>
+              <button class="qq-param-btn" data-param="z_error" type="button">z_error (Cross-Track)</button>
+              <button class="qq-param-btn" data-param="satclockerror" type="button">satclockerror (Clock)</button>
+            </div>
+
+            <div class="chart-container-box qq-chart-container">
+              <canvas id="qq-chart"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
