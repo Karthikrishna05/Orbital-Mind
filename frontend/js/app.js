@@ -482,8 +482,6 @@ async function renderROCChart() {
           }
         },
         y: {
-          suggestedMin: 0.85,
-          suggestedMax: 1.0,
           grid: { color: 'rgba(160, 160, 175, 0.12)' },
           ticks: { color: '#A0A0AA', font: { family: 'JetBrains Mono', size: 11 } },
           title: {
@@ -711,6 +709,7 @@ function initTestDataView() {
       const result = await ApiService.uploadTestData(file, currentOrbit);
       state.testResults[currentOrbit] = result;
       state.testData[currentOrbit].submitted = true;
+      state.currentResultsOrbit = currentOrbit;
 
       submitBtn.innerHTML = `
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -725,9 +724,7 @@ function initTestDataView() {
       `;
       submissionAlert.classList.add('visible');
 
-      if (state.currentResultsOrbit === currentOrbit) {
-        renderResultsForCurrentOrbit();
-      }
+      navigateTo('results');
     } catch (err) {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `Submit ${currentOrbit} Test Data`;
@@ -768,6 +765,8 @@ function initResultsView() {
   const tabShapiro = document.getElementById('res-tab-shapiro');
   const tabMeanSD = document.getElementById('res-tab-meansd');
   const tabQQ = document.getElementById('res-tab-qq');
+  const testAgainBtn = document.getElementById('results-test-again');
+  const homeBtn = document.getElementById('results-home');
 
   const panelShapiro = document.getElementById('panel-shapiro');
   const panelMeanSD = document.getElementById('panel-meansd');
@@ -787,6 +786,8 @@ function initResultsView() {
   tabShapiro.addEventListener('click', () => switchResultsTab('shapiro'));
   tabMeanSD.addEventListener('click', () => switchResultsTab('meansd'));
   tabQQ.addEventListener('click', () => switchResultsTab('qq'));
+  testAgainBtn.addEventListener('click', () => navigateTo('test-data'));
+  homeBtn.addEventListener('click', () => navigateTo('hero'));
 
   const qqBtns = document.querySelectorAll('.qq-param-btn');
   qqBtns.forEach((btn) => {

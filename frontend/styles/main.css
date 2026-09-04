@@ -348,13 +348,42 @@ html, body {
 .page-view.scrollable .content-card {
   height: auto;
   flex-shrink: 0;
+  overflow: visible;
 }
 .page-view.scrollable .content-card + .content-card {
   margin-top: 16px;
 }
 .page-view.scrollable .chart-container-box {
-  height: 340px;
+  height: clamp(360px, 52vh, 560px);
   flex-shrink: 0;
+}
+
+#view-model-progression {
+  display: none;
+}
+
+#view-model-progression.active {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#view-model-progression.active::-webkit-scrollbar {
+  display: none;
+}
+
+#view-model-progression .content-card {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+#view-model-progression .chart-container-box {
+  height: clamp(420px, 58vh, 620px);
+  flex: 0 0 clamp(420px, 58vh, 620px);
 }
 
 /* Final-model composition (per-channel sub-model contribution) */
@@ -576,6 +605,22 @@ html, body {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.results-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#results-test-again {
+  border-color: rgba(144, 213, 229, 0.55);
+  color: var(--pale-cyan-silver);
+}
+
+#results-home {
+  border-color: rgba(240, 240, 245, 0.35);
+  color: var(--silver-primary);
 }
 
 .toggle-group {
