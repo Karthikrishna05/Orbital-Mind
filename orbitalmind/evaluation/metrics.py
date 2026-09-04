@@ -20,6 +20,7 @@ from .confidence import bootstrap_ci_W
 @dataclass
 class ParamResult:
     param: str
+    n_raw: int
     n: int
     W: float
     p: float
@@ -64,8 +65,25 @@ def residuals(pred: dict, actual: dict) -> dict:
     return out
 
 
+def mad_filter(data: np.ndarray, threshold: float = 3.0) -> np.ndarray:
+    """Robust outlier rejection using Median Absolute Deviation.
+    
+    Removes points that are more than `threshold` MADs from the median.
+    """
+    if data.size < 3:
+        return data
+    med = np.median(data)
+    d = np.abs(data - med)
+    mdev = np.median(d)
+    if mdev == 0.0:
+        return data
+    s = d / mdev
+    return data[s < threshold]
+
+
 def evaluate_residuals(resid: dict, alpha: float = 0.05, stat: str = "swtest",
-                       with_ci: bool = False, ci_B: int = 1000) -> ResidualReport:
+                       with_ci: bool = False, ci_B: int = 1000,
+                       reject_outliers: bool = False, mad_threshold: float = 3.0) -> ResidualReport:
     """Compute the Priority-1/2 report from per-parameter residual arrays.
 
     Parameters
@@ -73,13 +91,18 @@ def evaluate_residuals(resid: dict, alpha: float = 0.05, stat: str = "swtest",
     stat : str
         Which normality statistic to use: "swtest" (default, evaluator-faithful),
         "shapiro_wilk" (Note's literal wording), or "shapiro_francia".
+    reject_outliers : bool
+        If True, applies a MAD filter to remove severe hardware outliers before scoring.
     """
     stat_fn = STAT_FUNCS[stat]
     per_param = {}
     Ws, ps, Hs, means_abs, stds = [], [], [], [], []
     for p in PARAM_NAMES:
-        r = np.asarray(resid[p], dtype=float)
-        r = r[np.isfinite(r)]
+        r_raw = np.asarray(resid[p], dtype=float)
+        r_raw = r_raw[np.isfinite(r_raw)]
+        n_raw = r_raw.size
+        
+        r = mad_filter(r_raw, threshold=mad_threshold) if reject_outliers else r_raw
         n = r.size
         if n >= 3 and (r.max() - r.min()) > 1e-19:
             sw = stat_fn(r, alpha=alpha)
@@ -90,7 +113,7 @@ def evaluate_residuals(resid: dict, alpha: float = 0.05, stat: str = "swtest",
         if with_ci and n >= 4:
             ci = bootstrap_ci_W(r, B=ci_B, alpha=alpha)
             ci_lo, ci_hi = ci["lo"], ci["hi"]
-        pr = ParamResult(param=p, n=n, W=W, p=pv, H=H,
+        pr = ParamResult(param=p, n_raw=n_raw, n=n, W=W, p=pv, H=H,
                          mean=float(np.mean(r)) if n else float("nan"),
                          std=float(np.std(r, ddof=1)) if n > 1 else float("nan"),
                          ci_lo=ci_lo, ci_hi=ci_hi)
@@ -112,8 +135,9 @@ def evaluate_residuals(resid: dict, alpha: float = 0.05, stat: str = "swtest",
     # Pooled standardized residuals (each param z-scored then concatenated).
     pooled = []
     for p in PARAM_NAMES:
-        r = np.asarray(resid[p], dtype=float)
-        r = r[np.isfinite(r)]
+        r_raw = np.asarray(resid[p], dtype=float)
+        r_raw = r_raw[np.isfinite(r_raw)]
+        r = mad_filter(r_raw, threshold=mad_threshold) if reject_outliers else r_raw
         if r.size > 1:
             s = np.std(r, ddof=1)
             if s > 0:

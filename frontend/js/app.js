@@ -10,7 +10,7 @@ let qqChartInstance = null;
 const state = {
   currentRoute: 'hero',
   trainOrbit: 'GEO',
-  rocMetric: 'rms',
+  rocMetric: 'sw',
   testData: {
     GEO: { file: null, submitted: false },
     MEO: { file: null, submitted: false }
@@ -360,7 +360,7 @@ function initROCView() {
   });
 }
 
-async function renderROCChart(metric = 'rms') {
+async function renderROCChart(metric = 'sw') {
   const ctx = document.getElementById('roc-chart');
   if (!ctx) return;
 
@@ -374,19 +374,19 @@ async function renderROCChart(metric = 'rms') {
   let bgColor = 'rgba(232, 232, 245, 0.15)';
   let yAxisTitle = '';
 
-  if (metric === 'clock') {
-    dataValues = iterations.map((i) => i.clockDriftRms);
-    metricLabel = 'Clock Drift Residual RMS (ns - lower is better)';
-    borderColor = '#90D5E5';
-    bgColor = 'rgba(144, 213, 229, 0.18)';
-    yAxisTitle = 'Clock Bias RMS (ns)';
-  } else {
-    // default 'rms'
-    dataValues = iterations.map((i) => i.rmsError);
-    metricLabel = '3D RMS Ephemeris Error (meters - lower is better)';
+  if (metric === 'sw') {
+    dataValues = iterations.map((i) => i.swW);
+    metricLabel = 'Shapiro-Wilk W Statistic (higher = more Gaussian residuals)';
     borderColor = '#E8E8F5';
     bgColor = 'rgba(232, 232, 245, 0.18)';
-    yAxisTitle = '3D RMS Error (m)';
+    yAxisTitle = 'SW W Statistic (benchmark = 0.9810)';
+  } else {
+    // 'rms' -> residual std in metres
+    dataValues = iterations.map((i) => i.rmsError);
+    metricLabel = 'Avg 4-Channel Residual Std (m) — lower = tighter residuals';
+    borderColor = '#90D5E5';
+    bgColor = 'rgba(144, 213, 229, 0.18)';
+    yAxisTitle = 'Residual Std (m)';
   }
 
   if (rocChartInstance) {
@@ -673,12 +673,18 @@ function populateShapiroTable(rows = []) {
   tbody.innerHTML = rows
     .map((row, idx) => {
       const isAgg = idx === rows.length - 1;
+      // Map actual status to badge class
+      const badgeClass = row.status === 'normal'
+        ? 'badge-normal'
+        : row.status === 'partial'
+          ? 'badge-partial'
+          : 'badge-non-normal';
       return `
         <tr class="${isAgg ? 'aggregate-row' : ''}">
           <td style="font-weight: ${isAgg ? '700' : '500'};">${row.parameter}</td>
           <td>${row.wStatistic}</td>
           <td>${row.pValue}</td>
-          <td><span class="badge-normal">${row.hypothesis}</span></td>
+          <td><span class="${badgeClass}">${row.hypothesis}</span></td>
           <td style="color: var(--silver-secondary); font-size: 0.78rem;">${row.notes}</td>
         </tr>
       `;

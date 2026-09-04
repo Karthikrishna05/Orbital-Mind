@@ -162,11 +162,14 @@ def load_dataset(name: str):
 
     Returns
     -------
-    (train, test) : tuple[SeriesData, SeriesData]
+    (train, test) : tuple[SeriesData, SeriesData | None]
     """
     spec = DATASETS[name]
     train = load_csv(spec["train"], name=name, kind=spec["kind"])
-    test = load_csv(spec["test"], name=name + "_test", kind=spec["kind"])
+    try:
+        test = load_csv(spec["test"], name=name + "_test", kind=spec["kind"])
+    except FileNotFoundError:
+        test = None
     return train, test
 
 

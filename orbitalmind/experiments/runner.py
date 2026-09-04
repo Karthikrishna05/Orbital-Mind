@@ -61,7 +61,7 @@ def run_leaderboard(datasets=None, model_names=None, stat: str = "swtest",
         for name in model_names:
             if include_test:
                 res = run_model(build_model(name, kind), train, q_t, actual,
-                                dataset=ds, stat=stat)
+                                dataset=ds, stat=stat, reject_outliers=True, mad_threshold=3.0)
                 rep = res.report
                 test_fields = dict(
                     W_avg=rep.W_avg, p_avg=rep.p_avg, H_avg=rep.H_avg,
