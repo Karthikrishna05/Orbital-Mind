@@ -340,6 +340,58 @@ html, body {
   transform: translateY(0);
 }
 
+/* Scrollable pages: content taller than the viewport scrolls vertically. */
+.page-view.scrollable.active {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.page-view.scrollable .content-card {
+  height: auto;
+  flex-shrink: 0;
+}
+.page-view.scrollable .content-card + .content-card {
+  margin-top: 16px;
+}
+.page-view.scrollable .chart-container-box {
+  height: 340px;
+  flex-shrink: 0;
+}
+
+/* Final-model composition (per-channel sub-model contribution) */
+.composition-group { margin-top: 6px; }
+.composition-group + .composition-group { margin-top: 18px; }
+.composition-group-title {
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--silver-bright);
+  margin-bottom: 4px;
+}
+.composition-group-model {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--silver-secondary);
+  margin-bottom: 8px;
+}
+.gaussian-yes { color: #7ee0a0; font-weight: 600; }
+.gaussian-no  { color: #e08a8a; font-weight: 600; }
+
+.verdict-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--silver-secondary);
+  margin-left: 12px;
+}
+.verdict-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  display: inline-block;
+}
+.verdict-pass    { background: #7ee0a0; }
+.verdict-partial { background: #e0c07e; }
+.verdict-fail    { background: #e08a8a; }
+
 /* HERO PAGE (Can scroll if viewport is extremely short) */
 #view-hero {
   justify-content: center;
@@ -517,6 +569,13 @@ html, body {
 .card-subtitle {
   font-size: 0.8rem;
   color: var(--silver-secondary);
+}
+
+.results-header-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .toggle-group {

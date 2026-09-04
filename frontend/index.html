@@ -221,23 +221,35 @@
       </section>
 
       <!-- PAGE 3: MODEL PROGRESSION -->
-      <section id="view-model-progression" class="page-view">
+      <section id="view-model-progression" class="page-view scrollable">
         <div class="content-card">
           <div class="card-header-row">
             <div class="card-title-group">
               <h2 class="card-title">Model Progression</h2>
-              <div class="card-subtitle">Tracking iteration-over-iteration error reduction across architectures</div>
+              <div class="card-subtitle">Residual normality (Shapiro-Wilk W) across model iterations — higher W = more Gaussian residuals</div>
             </div>
 
-            <div class="toggle-group" role="group" aria-label="Performance Metric Toggle">
-              <button class="toggle-btn roc-metric-btn active" data-metric="rms" type="button">3D RMS Error</button>
-              <button class="toggle-btn roc-metric-btn" data-metric="clock" type="button">Clock Drift RMS</button>
+            <div class="toggle-group" role="group" aria-label="Normality Verdict Legend">
+              <span class="verdict-legend"><span class="verdict-dot verdict-pass"></span>Pass (H₀ normal)</span>
+              <span class="verdict-legend"><span class="verdict-dot verdict-partial"></span>Partial</span>
+              <span class="verdict-legend"><span class="verdict-dot verdict-fail"></span>Reject / rejected</span>
             </div>
           </div>
 
           <div class="chart-container-box">
             <canvas id="roc-chart"></canvas>
           </div>
+        </div>
+
+        <div class="content-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <h2 class="card-title">Final-Model Composition</h2>
+              <div class="card-subtitle">What each underlying sub-model contributes per channel, and its residual normality (W, p, H, Gaussian verdict)</div>
+            </div>
+          </div>
+
+          <div id="composition-container"></div>
         </div>
       </section>
 
@@ -314,10 +326,17 @@
               <div class="card-subtitle">Comprehensive error distribution analysis against ground truth ephemeris</div>
             </div>
 
-            <div class="toggle-group" role="group" aria-label="Results Metric Type Toggle">
-              <button id="res-tab-shapiro" class="toggle-btn active" type="button">Shapiro-Wilk</button>
-              <button id="res-tab-meansd" class="toggle-btn" type="button">Mean &amp; SD</button>
-              <button id="res-tab-qq" class="toggle-btn" type="button">Q-Q Plot</button>
+            <div class="results-header-controls">
+              <div class="toggle-group" role="group" aria-label="Results Satellite Orbit Toggle">
+                <button id="res-toggle-geo" class="toggle-btn active" type="button">GEO</button>
+                <button id="res-toggle-meo" class="toggle-btn" type="button">MEO</button>
+              </div>
+
+              <div class="toggle-group" role="group" aria-label="Results Metric Type Toggle">
+                <button id="res-tab-shapiro" class="toggle-btn active" type="button">Shapiro-Wilk</button>
+                <button id="res-tab-meansd" class="toggle-btn" type="button">Mean &amp; SD</button>
+                <button id="res-tab-qq" class="toggle-btn" type="button">Q-Q Plot</button>
+              </div>
             </div>
           </div>
 
@@ -380,6 +399,8 @@
   </div>
 
   <script src="js/dynamic_data.js"></script>
+  <!-- Real 7-day training observations (run scripts/export_train_data.py to generate). Optional: absent until generated. -->
+  <script src="js/dynamic_train_data.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
