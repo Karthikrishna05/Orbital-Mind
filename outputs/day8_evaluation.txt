@@ -1,0 +1,65 @@
+DAY-8 EVALUATION  (models trained on 7-day TRAIN only; NO fine-tuning)
+Model selection was leak-free (training-only validation); day-8 used here
+purely to score the frozen models.
+Note thresholds:  benchmark W=0.9810, p=0.5840, H=0   alpha=0.05
+H=0 => fail to reject normality (GOOD).  Higher W is better.
+Primary statistic = swtest (evaluator-faithful: Shapiro-Francia when kurtosis>3, else Shapiro-Wilk).
+==========================================================================================
+
+[GEO]  model = composite_pos_clock   (leak-free training pick)
+  day-8 timestamps: 69 unique (loader removed 0 duplicate-timestamp rows; input rows were de-duplicated)
+  --- Priority 1: residual normality (predicted - actual) ---
+    param   W_swtest       p   H        W_CI(95%) |    W_SW    p_SW
+    x         0.8885  0.0001   1    [0.800,0.935] |  0.8927  0.0000
+    y         0.8283  0.0000   1    [0.716,0.900] |  0.8410  0.0000
+    z         0.8956  0.0001   1    [0.785,0.977] |  0.9116  0.0001
+    clock     0.7366  0.0000   1    [0.653,0.820] |  0.7534  0.0000
+    AVG    W=0.8373  p=0.0000  H_avg=1.00   -> normality: FAIL
+    vs benchmark W=0.9810/p=0.5840: below benchmark W
+  --- Priority 2: residual mean & std (tiebreak) ---
+    x      mean=-0.1063  std=13.8882
+    y      mean=-1.3489  std=19.5806
+    z      mean=+1.4099  std=10.8154
+    clock  mean=+7.9042  std=16.7369
+    AVG  |mean|=2.6923  std=15.2553
+  --- Priority 3: Q-Q plot -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\qq_day8_GEO_composite_pos_clock.png
+  predictions saved -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\pred_day8_GEO.csv
+
+[MEO1]  model = ensemble_median   (leak-free training pick)
+  day-8 timestamps: 6 unique (loader removed 0 duplicate-timestamp rows; input rows were de-duplicated)
+  NOTE: n=6 is very small -- Shapiro tests have little power here.
+  --- Priority 1: residual normality (predicted - actual) ---
+    param   W_swtest       p   H        W_CI(95%) |    W_SW    p_SW
+    x         0.9277  0.5625   0    [0.628,0.940] |  0.9277  0.5625
+    y         0.9002  0.3750   0    [0.624,0.923] |  0.9002  0.3750
+    z         0.9246  0.5394   0    [0.640,0.925] |  0.9246  0.5394
+    clock     0.9850  0.9735   0    [0.672,0.975] |  0.9850  0.9735
+    AVG    W=0.9344  p=0.6126  H_avg=0.00   -> normality: PASS
+    vs benchmark W=0.9810/p=0.5840: below benchmark W
+  --- Priority 2: residual mean & std (tiebreak) ---
+    x      mean=+0.1789  std=0.0858
+    y      mean=-0.0331  std=0.3855
+    z      mean=-0.0796  std=0.1773
+    clock  mean=+0.0669  std=0.2439
+    AVG  |mean|=0.0896  std=0.2231
+  --- Priority 3: Q-Q plot -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\qq_day8_MEO1_ensemble_median.png
+  predictions saved -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\pred_day8_MEO1.csv
+
+[MEO2]  model = composite_pos_clock   (leak-free training pick)
+  day-8 timestamps: 18 unique (loader removed 0 duplicate-timestamp rows; input rows were de-duplicated)
+  --- Priority 1: residual normality (predicted - actual) ---
+    param   W_swtest       p   H        W_CI(95%) |    W_SW    p_SW
+    x         0.8038  0.0026   1    [0.645,0.879] |  0.7986  0.0014
+    y         0.9512  0.4439   0    [0.822,0.958] |  0.9512  0.4439
+    z         0.9855  0.9888   0    [0.862,0.974] |  0.9855  0.9888
+    clock     0.8937  0.0445   1    [0.767,0.937] |  0.9027  0.0641
+    AVG    W=0.9085  p=0.3699  H_avg=0.50   -> normality: PARTIAL
+    vs benchmark W=0.9810/p=0.5840: below benchmark W
+  --- Priority 2: residual mean & std (tiebreak) ---
+    x      mean=+0.1560  std=0.2233
+    y      mean=+0.0253  std=0.1573
+    z      mean=-0.0415  std=0.2858
+    clock  mean=-0.3379  std=0.0548
+    AVG  |mean|=0.1402  std=0.1803
+  --- Priority 3: Q-Q plot -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\qq_day8_MEO2_composite_pos_clock.png
+  predictions saved -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\pred_day8_MEO2.csv

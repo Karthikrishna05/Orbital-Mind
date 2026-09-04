@@ -1,0 +1,25 @@
+Leak-free submission picks  (selected on INTERNAL train-holdout; day-8 shown only as an after-the-fact check)
+============================================================================================
+
+[GEO]  holdout baseline std=5.447
+  PICK              : mlp
+    selected on     : W_holdout=0.9072 std_holdout=5.879 H_holdout=0.50
+    day-8 check     : W=0.8983 std=17.443 H=1.00  (NOT used to choose)
+  holdout leader    : mlp (W_holdout=0.9072)
+  reason            : holdout leader also keeps holdout std near baseline -> selected on internal validation, no test peeking.
+
+[MEO1]  holdout baseline std=0.459
+  PICK              : gbr_huber
+    selected on     : W_holdout=0.8827 std_holdout=0.545 H_holdout=0.00
+    day-8 check     : W=0.9289 std=0.362 H=0.00  (NOT used to choose)
+  holdout leader    : stack_harmonic+harmonic (W_holdout=0.9179)  <-- SPREAD-GAMER
+  reason            : holdout leader 'stack_harmonic+harmonic' inflates holdout std; picked the highest holdout-W model within 25% of baseline std. Selection used internal validation only.
+
+[MEO2]  holdout baseline std=0.183
+  PICK              : stack_harmonic+harmonic
+    selected on     : W_holdout=0.8747 std_holdout=0.212 H_holdout=0.42
+    day-8 check     : W=0.8716 std=0.179 H=0.50  (NOT used to choose)
+  holdout leader    : mlp (W_holdout=0.8987)  <-- SPREAD-GAMER
+  reason            : holdout leader 'mlp' inflates holdout std; picked the highest holdout-W model within 25% of baseline std. Selection used internal validation only.
+
+Note: the day-8 'check' is an honest generalization estimate because selection never used it. The real final round uses fresh timestamps, so treat day-8 numbers as indicative, not exact.

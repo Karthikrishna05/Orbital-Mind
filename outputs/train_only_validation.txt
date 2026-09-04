@@ -1,0 +1,95 @@
+TRAINING-ONLY validation (rolling folds; day-8 NEVER used)
+================================================================================
+
+[GEO]
+model                        W_val  std_val   |mean|  H_val folds
+composite_pos_clock         0.9147    6.189    3.947   0.33     3
+mlp                         0.9072    5.879    0.658   0.50     3
+regime_harmonic             0.9041  113.209  186.755   0.33     3
+segmented_clock             0.9000    6.174    3.990   0.42     3
+gbr_huber                   0.8971    5.523    0.890   0.50     3
+harmonic_robust_p2h3        0.8966    5.389    0.681   0.33     3
+kalman_llt                  0.8952    7.911    9.153   0.42     3
+stack_harmonic+harmonic     0.8944    5.373    0.483   0.33     3
+ensemble_median             0.8937    5.364    0.475   0.42     3
+auto_harmonic_np3h2         0.8924    5.391    0.662   0.42     3
+auto_harmonic_np2h1         0.8868    5.276    0.610   0.42     3
+physics_harmonic            0.8853    5.550    2.732   0.42     3
+stack_harmonic+gp           0.8825    5.354    0.539   0.42     3
+harmonic_robust_p2h2        0.8820    5.363    0.518   0.42     3
+sarima                      0.8806    5.314    0.623   0.42     3
+regime_gbr                  0.8804    5.477    0.448   0.50     3
+stacking_meta               0.8788    5.409    0.739   0.50     3
+per_channel_best            0.8763    5.430    0.697   0.50     3
+gp_matern_periodic          0.8763    5.187    0.509   0.50     3
+harmonic_ols_p1h1           0.8760    5.308    0.427   0.42     3
+zero                        0.8758    5.447    0.514   0.42     3
+mean                        0.8758    5.447    0.294   0.42     3
+median                      0.8758    5.447    0.453   0.42     3
+persistence                 0.8758    5.447    1.858   0.42     3
+clock_kalman                0.8749    5.425    0.905   0.42     3
+harmonic_robust_p1h1        0.8723    5.377    0.581   0.42     3
+
+[MEO1]
+model                        W_val  std_val   |mean|  H_val folds
+stack_harmonic+harmonic     0.9179    1.190    3.424   0.08     3
+composite_pos_clock         0.9000    1.031    3.498   0.17     3
+ensemble_median             0.8989    0.484    0.201   0.08     3
+harmonic_robust_p2h2        0.8922    0.683    0.439   0.08     3
+regime_harmonic             0.8922    0.683    0.439   0.08     3
+stack_harmonic+gp           0.8896    0.651    0.458   0.08     3
+mlp                         0.8882    0.734    0.271   0.25     3
+stacking_meta               0.8854    0.480    0.258   0.08     3
+gbr_huber                   0.8827    0.545    0.213   0.00     3
+regime_gbr                  0.8827    0.545    0.213   0.00     3
+clock_kalman                0.8803    0.691    0.657   0.17     3
+segmented_clock             0.8803    0.691    0.657   0.17     3
+kalman_llt                  0.8777    0.466    4.104   0.17     3
+sarima                      0.8760    0.466    0.260   0.25     3
+median                      0.8755    0.459    0.241   0.25     3
+persistence                 0.8755    0.459    0.481   0.25     3
+zero                        0.8755    0.459    0.299   0.25     3
+mean                        0.8755    0.459    0.198   0.25     3
+auto_harmonic_np3h2         0.8754    0.801    0.382   0.08     3
+gp_matern_periodic          0.8712    0.486    0.165   0.25     3
+per_channel_best            0.8707    0.493    0.221   0.17     3
+physics_harmonic            0.8650    1.217    2.134   0.17     3
+harmonic_ols_p1h1           0.8568    0.600    0.284   0.33     3
+harmonic_robust_p1h1        0.8519    0.654    0.409   0.33     3
+auto_harmonic_np2h1         0.8049    0.332    0.130   0.42     3
+harmonic_robust_p2h3        0.7317    5.824   20.407   0.58     3
+
+[MEO2]
+model                        W_val  std_val   |mean|  H_val folds
+composite_pos_clock         0.9034    0.215    0.243   0.33     3
+mlp                         0.8987    0.318    0.170   0.42     3
+kalman_llt                  0.8814    0.574    5.056   0.75     3
+stack_harmonic+harmonic     0.8747    0.212    0.143   0.42     3
+harmonic_robust_p2h3        0.8588    0.230    0.203   0.67     3
+segmented_clock             0.8495    0.213    0.316   0.67     3
+regime_gbr                  0.8479    0.204    0.099   0.67     3
+physics_harmonic            0.8437    0.529    1.019   0.67     3
+stack_harmonic+gp           0.8426    0.213    0.228   0.67     3
+harmonic_robust_p2h2        0.8390    0.208    0.222   0.67     3
+clock_kalman                0.8387    0.212    0.293   0.75     3
+gbr_huber                   0.8363    0.209    0.177   0.67     3
+per_channel_best            0.8281    0.199    0.157   0.75     3
+regime_harmonic             0.8258    0.209    0.225   0.67     3
+harmonic_ols_p1h1           0.8221    0.195    0.125   0.75     3
+harmonic_robust_p1h1        0.8166    0.185    0.111   0.83     3
+ensemble_median             0.8141    0.194    0.173   0.75     3
+gp_matern_periodic          0.8020    0.188    0.064   0.83     3
+stacking_meta               0.7938    0.284    0.622   0.92     3
+auto_harmonic_np2h1         0.7842    0.176    0.212   0.83     3
+sarima                      0.7763    0.185    0.156   0.83     3
+median                      0.7740    0.183    0.075   0.75     3
+persistence                 0.7740    0.183    0.277   0.75     3
+zero                        0.7740    0.183    0.093   0.75     3
+mean                        0.7740    0.183    0.071   0.75     3
+auto_harmonic_np3h2         0.7691    0.501    0.717   0.92     3
+
+================================================================================
+Defensible pick per dataset (leak-free; std + bias guarded):
+  [GEO] -> composite_pos_clock  (W_val=0.9147, std_val=6.189, H_val=0.33)
+  [MEO1] -> ensemble_median  (W_val=0.8989, std_val=0.484, H_val=0.08)
+  [MEO2] -> stack_harmonic+harmonic  (W_val=0.8747, std_val=0.212, H_val=0.42)

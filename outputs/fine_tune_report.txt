@@ -1,0 +1,55 @@
+FINE-TUNING ON DAY-8  (rules-permitted; Note 1a)
+Thresholds: benchmark W=0.9810, p=0.5840, H=0   alpha=0.05   (H=0 => normal => GOOD)
+Honest metric = 'ft-OOF' (out-of-fold on day-8). in-sample is optimistic.
+==============================================================================================
+
+[GEO]  train n=142  day-8 n=69  (folds=4)
+  model                     trainW  ftOOF_W  ftOOF_H  ftOOF_std  insampW
+  harmonic_robust_p2h2      0.7877   0.7836     1.00    15.1358   0.7764
+  harmonic_robust_p2h3      0.7973   0.7847     1.00    15.1671   0.7737
+  gbr_huber                 0.8194   0.8210     1.00    16.9500   0.7255
+  mlp                       0.8983   0.8964     0.75    23.3879   0.7841
+  ensemble_median           0.7865   0.7820     1.00    15.3284   0.7663
+  stack_harmonic+harmonic   0.7978   0.7844     1.00    15.1601   0.7737
+  --> best fine-tuned (honest): mlp  ftOOF W=0.8964 (train-only 0.8983, gain -0.0018), H_avg=0.75
+       x      W=0.9773 p=0.2078 H=0 mean=+0.8476 std=24.2362
+       y      W=0.9488 p=0.0085 H=1 mean=-0.7993 std=28.0640
+       z      W=0.9451 p=0.0059 H=1 mean=+0.9289 std=20.2425
+       clock  W=0.7145 p=0.0000 H=1 mean=-1.1731 std=21.0091
+       Q-Q (honest OOF) -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\qq_ft_GEO_mlp.png
+
+[MEO1]  train n=46  day-8 n=6  (folds=3)
+  model                     trainW  ftOOF_W  ftOOF_H  ftOOF_std  insampW
+  harmonic_robust_p2h2      0.9429   0.9340     0.00     0.2762   0.9278
+  harmonic_robust_p2h3      0.8808   0.8127     0.25     0.4909   0.8315
+  gbr_huber                 0.9289   0.9309     0.00     0.3856   0.9022
+  mlp                       0.8566   0.8864     0.00     0.6944   0.9087
+  ensemble_median           0.9344   0.9338     0.00     0.2514   0.9028
+  stack_harmonic+harmonic   0.9227   0.8989     0.00     0.5787   0.9211
+  --> best fine-tuned (honest): harmonic_robust_p2h2  ftOOF W=0.9340 (train-only 0.9429, gain -0.0088), H_avg=0.00
+       x      W=0.8957 p=0.3490 H=0 mean=+0.1144 std=0.0823
+       y      W=0.9058 p=0.4093 H=0 mean=-0.0118 std=0.4384
+       z      W=0.9798 p=0.9506 H=0 mean=-0.0460 std=0.3106
+       clock  W=0.9549 p=0.7796 H=0 mean=+0.0698 std=0.2733
+       Q-Q (honest OOF) -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\qq_ft_MEO1_harmonic_robust_p2h2.png
+
+[MEO2]  train n=143  day-8 n=18  (folds=3)
+  model                     trainW  ftOOF_W  ftOOF_H  ftOOF_std  insampW
+  harmonic_robust_p2h2      0.8456   0.7842     1.00     0.1346   0.7495
+  harmonic_robust_p2h3      0.8463   0.8023     1.00     0.1359   0.7598
+  gbr_huber                 0.8196   0.8090     0.75     0.1583   0.7230
+  mlp                       0.9315   0.9139     0.25     0.1734   0.9212
+  ensemble_median           0.7807   0.7594     0.75     0.1270   0.6680
+  stack_harmonic+harmonic   0.8716   0.8404     0.50     0.1364   0.7693
+  --> best fine-tuned (honest): mlp  ftOOF W=0.9139 (train-only 0.9315, gain -0.0176), H_avg=0.25
+       x      W=0.8791 p=0.0268 H=1 mean=+0.0427 std=0.2600
+       y      W=0.9339 p=0.1961 H=0 mean=+0.0306 std=0.0934
+       z      W=0.9436 p=0.2833 H=0 mean=+0.0130 std=0.2379
+       clock  W=0.8991 p=0.0539 H=0 mean=+0.0224 std=0.1024
+       Q-Q (honest OOF) -> C:\Users\pc\Project-Programming\Python\OrbitalMind\outputs\qq_ft_MEO2_mlp.png
+
+==============================================================================================
+SUMMARY: fine-tuned honest (ft-OOF) vs train-only
+  [GEO] mlp                      train-only W=0.8983 -> fine-tuned W=0.8964 (-0.0018), H_avg=0.75 [PARTIAL]
+  [MEO1] harmonic_robust_p2h2     train-only W=0.9429 -> fine-tuned W=0.9340 (-0.0088), H_avg=0.00 [PASS]
+  [MEO2] mlp                      train-only W=0.9315 -> fine-tuned W=0.9139 (-0.0176), H_avg=0.25 [PARTIAL]
