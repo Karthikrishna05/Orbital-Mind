@@ -1,0 +1,50 @@
+# ── OrbitalMind .gitignore ────────────────────────────────────────────────
+
+# Virtual environments (large, machine-specific — never push)
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Scratch / temporary working files
+tmp/
+*.tmp
+*.bak
+# generated run logs in outputs (the curated reports/plots/CSVs stay tracked)
+outputs/_*.log
+outputs/_*.txt
+outputs/*_run.log
+
+# Trained/saved model blobs (regenerable, can be large)
+*.pkl
+*.pt
+*.joblib
+models/saved/
+
+# Local secrets / environment overrides (never push credentials)
+.env
+.env.*
+*.local
+
+# OS & editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
+
+# NOTE: the competition dataset (DATA_*.csv, Note.pdf, SW_ReferenceData.xlsx)
+# lives outside this repo (ORBITALMIND_DATA_DIR); if you ever copy it in under
+# data/, uncomment the next line so the raw data is not pushed:
+# data/
