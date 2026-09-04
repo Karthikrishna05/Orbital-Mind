@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Raw data directory (override with env var ORBITALMIND_DATA_DIR).
 DATA_DIR = Path(
-    os.environ.get("ORBITALMIND_DATA_DIR", r"C:\Users\pc\Downloads\Data_PS-08")
+    os.environ.get("ORBITALMIND_DATA_DIR", r"C:\Users\krant\Downloads\Data_PS-08")
 )
 
 # Project root (this file is orbitalmind/config.py -> parent.parent is repo root).

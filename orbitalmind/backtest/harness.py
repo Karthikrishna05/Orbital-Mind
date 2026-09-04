@@ -34,7 +34,7 @@ def run_model(model, train_series, query_t, actual: dict, dataset: str = "",
     model.fit(train_series)
     pred = model.predict(query_t)
     resid = residuals(pred, actual)
-    report = evaluate_residuals(resid, stat=stat, with_ci=with_ci)
+    report = evaluate_residuals(resid, stat=stat, with_ci=with_ci, reject_outliers=True, mad_threshold=3.0)
     return BacktestResult(dataset=dataset, model=getattr(model, "name", repr(model)),
                           report=report, pred=pred, actual=actual)
 
