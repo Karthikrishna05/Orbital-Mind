@@ -17,6 +17,10 @@ const state = {
   },
   currentTestOrbit: 'GEO',
   currentResultsOrbit: 'GEO',
+  testResults: {
+    GEO: null,
+    MEO: null
+  },
   activeResultTab: 'shapiro',
   activeQQParam: 'x_error',
   resultsDataCache: null
@@ -574,20 +578,35 @@ function initTestDataView() {
       Processing Telemetry...
     `;
 
-    await ApiService.uploadTestData(file, currentOrbit);
+    try {
+      const result = await ApiService.uploadTestData(file, currentOrbit);
+      state.testResults[currentOrbit] = result;
+      state.testData[currentOrbit].submitted = true;
 
-    state.testData[currentOrbit].submitted = true;
-    submitBtn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-      Inference Complete
-    `;
-    submissionAlert.innerHTML = `
-      🚀 <strong>${currentOrbit} Inference Successful:</strong> File <code>${file.name}</code> processed against OrbitalMind Hybrid Ensemble. 
-      Residual distributions and normality metrics are updated in the <a href="#results" style="color: var(--silver-bright); text-decoration: underline;">Results</a> panel.
-    `;
-    submissionAlert.classList.add('visible');
+      submitBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Inference Complete
+      `;
+      submissionAlert.innerHTML = `
+        🚀 <strong>${currentOrbit} Inference Successful:</strong> File <code>${file.name}</code> processed against the
+        ${result.model} model (n=${result.n} points).
+        Residual distributions and normality metrics are updated in the <a href="#results" style="color: var(--silver-bright); text-decoration: underline;">Results</a> panel.
+      `;
+      submissionAlert.classList.add('visible');
+
+      if (state.currentResultsOrbit === currentOrbit) {
+        renderResultsForCurrentOrbit();
+      }
+    } catch (err) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `Submit ${currentOrbit} Test Data`;
+      submissionAlert.innerHTML = `
+        ⚠️ <strong>${currentOrbit} Inference Failed:</strong> ${err.message}
+      `;
+      submissionAlert.classList.add('visible');
+    }
   });
 
   function renderTestUploadState() {
@@ -678,16 +697,29 @@ async function loadResultsData() {
 }
 
 function renderResultsForCurrentOrbit() {
-  if (!state.resultsDataCache) return;
   const orbit = state.currentResultsOrbit;
-  const filterByOrbit = (rows = []) =>
-    rows.filter((row) => row.parameter.includes(orbit));
+  const live = state.testResults[orbit];
 
-  populateShapiroTable(filterByOrbit(state.resultsDataCache.shapiroWilk));
-  populateMeanSDTable(filterByOrbit(state.resultsDataCache.meanAndSD));
+  if (live) {
+    populateShapiroTable(live.shapiroWilk);
+    populateMeanSDTable(live.meanAndSD);
+  } else if (state.resultsDataCache) {
+    const filterByOrbit = (rows = []) =>
+      rows.filter((row) => row.parameter.includes(orbit));
+    populateShapiroTable(filterByOrbit(state.resultsDataCache.shapiroWilk));
+    populateMeanSDTable(filterByOrbit(state.resultsDataCache.meanAndSD));
+  }
+
   if (state.activeResultTab === 'qq') {
     renderQQChart(state.activeQQParam);
   }
+}
+
+function getActiveQQPlotData() {
+  const orbit = state.currentResultsOrbit;
+  const live = state.testResults[orbit];
+  if (live) return live.qqPlotData;
+  return state.resultsDataCache?.qqPlotData?.[orbit];
 }
 
 function populateShapiroTable(rows = []) {
@@ -739,9 +771,9 @@ function populateMeanSDTable(rows = []) {
 
 function renderQQChart(param = 'x_error') {
   const ctx = document.getElementById('qq-chart');
-  if (!ctx || !state.resultsDataCache) return;
+  if (!ctx) return;
 
-  const qqData = state.resultsDataCache.qqPlotData[state.currentResultsOrbit]?.[param];
+  const qqData = getActiveQQPlotData()?.[param];
   if (!qqData) return;
 
   const theoreticals = qqData.points.map((p) => p.theoretical);

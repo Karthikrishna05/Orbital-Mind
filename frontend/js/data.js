@@ -423,26 +423,18 @@ export const ApiService = {
   },
 
   async uploadTestData(file, orbit = 'GEO') {
-    if (API_CONFIG.isLive) {
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('orbit', orbit);
-        const res = await fetch(`${API_CONFIG.baseUrl}/test-data/upload`, {
-          method: 'POST',
-          body: formData
-        });
-        if (res.ok) return await res.json();
-      } catch (err) {
-        console.warn('Backend submission failed, running local mock pipeline', err);
-      }
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('orbit', orbit);
+    const res = await fetch(`${API_CONFIG.baseUrl}/test-data/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(json.error || `Upload failed (HTTP ${res.status})`);
     }
-    return {
-      success: true,
-      orbit,
-      filename: file.name,
-      message: `Inference pipeline complete for ${orbit} dataset ${file.name}.`
-    };
+    return json;
   },
 
   async fetchResultsData() {
