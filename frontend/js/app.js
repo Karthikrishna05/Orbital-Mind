@@ -68,31 +68,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
- * Deterministic Elliptical Orbit Animation Loop
- * Traces the exact path of <ellipse cx="260" cy="105" rx="210" ry="75">
+ * Deterministic dual-orbit animation for the GEO and MEO tracks.
  */
 function initOrbitAnimation() {
-  const satGroup = document.getElementById('satellite-svg-group');
-  if (!satGroup) return;
+  const geoGroup = document.getElementById('satellite-svg-group');
+  const meoGroup = document.getElementById('satellite-meo-svg-group');
+  if (!geoGroup || !meoGroup) return;
 
   const cx = 260;
   const cy = 105;
-  const rx = 210;
-  const ry = 75;
+  const geoRx = 210;
+  const geoRy = 75;
+  const meoRx = 145;
+  const meoRy = 52;
 
-  let angle = 0;
-  const speed = (2 * Math.PI) / (12 * 60);
+  let geoAngle = 0;
+  let meoAngle = Math.PI * 0.72;
+  const geoSpeed = (2 * Math.PI) / (12 * 60);
+  const meoSpeed = (2 * Math.PI) / (8 * 60);
 
   function animate() {
-    angle += speed;
-    if (angle >= 2 * Math.PI) {
-      angle -= 2 * Math.PI;
-    }
+    geoAngle = (geoAngle + geoSpeed) % (2 * Math.PI);
+    meoAngle = (meoAngle + meoSpeed) % (2 * Math.PI);
 
-    const x = cx + rx * Math.cos(angle);
-    const y = cy + ry * Math.sin(angle);
+    const geoX = cx + geoRx * Math.cos(geoAngle);
+    const geoY = cy + geoRy * Math.sin(geoAngle);
+    const meoX = cx + meoRx * Math.cos(meoAngle);
+    const meoY = cy + meoRy * Math.sin(meoAngle);
 
-    satGroup.setAttribute('transform', `translate(${x.toFixed(2)}, ${y.toFixed(2)})`);
+    geoGroup.setAttribute('transform', `translate(${geoX.toFixed(2)}, ${geoY.toFixed(2)})`);
+    meoGroup.setAttribute('transform', `translate(${meoX.toFixed(2)}, ${meoY.toFixed(2)})`);
 
     requestAnimationFrame(animate);
   }

@@ -113,10 +113,12 @@
         <!-- Orbit Stage SVG with Exact Math Coordinates -->
         <div class="orbit-stage" aria-label="Animated GNSS Orbit Illustration">
           <svg id="orbit-svg" class="orbit-svg" viewBox="0 0 520 210">
-            <!-- Glow background ellipse -->
+            <!-- GEO and MEO orbital tracks -->
             <ellipse cx="260" cy="105" rx="210" ry="75" class="orbit-glow-ellipse"></ellipse>
-            <!-- Visible Orbit Path Line (cx=260, cy=105, rx=210, ry=75) -->
-            <ellipse id="visible-orbit-ellipse" cx="260" cy="105" rx="210" ry="75" class="orbit-path"></ellipse>
+            <ellipse id="visible-orbit-ellipse" cx="260" cy="105" rx="210" ry="75" class="orbit-path orbit-path-geo"></ellipse>
+            <ellipse cx="260" cy="105" rx="145" ry="52" class="orbit-path orbit-path-meo"></ellipse>
+            <text x="466" y="42" class="orbit-label orbit-label-geo">GEO</text>
+            <text x="394" y="65" class="orbit-label orbit-label-meo">MEO</text>
 
             <!-- Central Earth Group centered at (260, 105) -->
             <g transform="translate(260, 105)" title="Earth Planet Center">
@@ -125,6 +127,8 @@
                 <animate attributeName="opacity" values="0.4;0.8;0.4" dur="4s" repeatCount="indefinite" />
               </circle>
               <circle r="32" fill="url(#earthGradient)" stroke="rgba(200, 235, 242, 0.5)" stroke-width="1.1" />
+              <ellipse cx="-8" cy="-8" rx="17" ry="11" fill="url(#earthHighlight)" opacity="0.26" transform="rotate(-24)" />
+              <path d="M11-30a32 32 0 0 1 0 60" fill="none" stroke="rgba(0, 0, 0, 0.42)" stroke-width="7" opacity="0.7" />
 
               <g clip-path="url(#earthClip)" fill="url(#continentGradient)" opacity="0.88">
                 <path d="M-27-17l8-8 9 2 4 7-6 5-2 8-8-2-3-6z" />
@@ -141,8 +145,8 @@
               <circle r="32" fill="none" stroke="rgba(240, 250, 255, 0.72)" stroke-width="0.9" />
             </g>
 
-            <!-- Satellite Group (Animated via JS to stay 100% on ellipse cx=260, cy=105, rx=210, ry=75) -->
-            <g id="satellite-svg-group">
+            <!-- GEO satellite on the outer track -->
+            <g id="satellite-svg-group" class="satellite satellite-geo">
               <circle r="12" fill="rgba(240, 240, 255, 0.25)" filter="blur(2px)"></circle>
               <circle r="4" fill="#FFFFFF"></circle>
               <g stroke="#FFFFFF" stroke-width="1.6" fill="none" transform="scale(0.85)">
@@ -151,6 +155,19 @@
                 <rect x="-17" y="-4" width="6" height="8" rx="1" fill="rgba(200,200,230,0.3)" stroke="#FFFFFF" stroke-width="1.2"></rect>
                 <line x1="5" y1="0" x2="15" y2="0" stroke-width="2"></line>
                 <rect x="11" y="-4" width="6" height="8" rx="1" fill="rgba(200,200,230,0.3)" stroke="#FFFFFF" stroke-width="1.2"></rect>
+              </g>
+            </g>
+
+            <!-- MEO satellite on the inner track -->
+            <g id="satellite-meo-svg-group" class="satellite satellite-meo">
+              <circle r="9" fill="rgba(144, 213, 229, 0.2)" filter="blur(2px)"></circle>
+              <circle r="3.5" fill="#90D5E5"></circle>
+              <g stroke="#90D5E5" stroke-width="1.4" fill="none" transform="scale(0.72)">
+                <rect x="-5" y="-5" width="10" height="10" rx="1.5" fill="#12121A" stroke="#90D5E5" />
+                <line x1="-15" y1="0" x2="-5" y2="0" stroke-width="2"></line>
+                <rect x="-17" y="-4" width="6" height="8" rx="1" fill="rgba(144,213,229,0.2)" />
+                <line x1="5" y1="0" x2="15" y2="0" stroke-width="2"></line>
+                <rect x="11" y="-4" width="6" height="8" rx="1" fill="rgba(144,213,229,0.2)" />
               </g>
             </g>
 
@@ -164,6 +181,10 @@
                 <stop offset="0%" stop-color="#C2E1D0" />
                 <stop offset="100%" stop-color="#628D87" />
               </linearGradient>
+              <radialGradient id="earthHighlight" cx="35%" cy="35%" r="70%">
+                <stop offset="0%" stop-color="#FFFFFF" />
+                <stop offset="100%" stop-color="#90D5E5" stop-opacity="0" />
+              </radialGradient>
               <clipPath id="earthClip">
                 <circle r="31.5" />
               </clipPath>
