@@ -8,14 +8,16 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-# Raw data directory (override with env var ORBITALMIND_DATA_DIR).
-DATA_DIR = Path(
-    os.environ.get("ORBITALMIND_DATA_DIR", r"C:\Users\krant\Downloads\Data_PS-08")
-)
-
 # Project root (this file is orbitalmind/config.py -> parent.parent is repo root).
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = REPO_ROOT / "outputs"
+
+# Raw data directory. Prefer an explicit machine-specific override, then the
+# repository-local dataset directory, and finally the legacy download path.
+_LOCAL_DATA_DIR = REPO_ROOT / "Data_PS-08"
+DATA_DIR = Path(os.environ.get("ORBITALMIND_DATA_DIR", _LOCAL_DATA_DIR))
+if not DATA_DIR.exists():
+    DATA_DIR = Path(r"C:\Users\krant\Downloads\Data_PS-08")
 
 # Reference dataset for validating our own Shapiro-Wilk implementation.
 SW_REFERENCE_FILE = DATA_DIR / "SW_ReferenceData.xlsx"
