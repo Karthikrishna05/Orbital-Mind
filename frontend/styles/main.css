@@ -629,6 +629,10 @@ html, body {
   gap: 8px;
 }
 
+.results-orbit-hidden {
+  display: none;
+}
+
 #results-test-again {
   border-color: rgba(144, 213, 229, 0.55);
   color: var(--pale-cyan-silver);

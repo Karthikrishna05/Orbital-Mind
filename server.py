@@ -54,6 +54,33 @@ PARAM_TITLE = {"x": "Radial", "y": "Along-Track", "z": "Cross-Track", "clock": "
 _model_lock = threading.Lock()
 _model_cache: dict[str, object] = {}  # 'GEO' | 'MEO' -> fitted model
 _model_names: dict[str, str] = {}     # 'GEO' | 'MEO' -> model name (for display)
+_recommendation_cache: dict[str, object] | None = None
+
+
+def _load_saved_recommendations():
+    """Use the checked-in leak-free picks before running the expensive selector."""
+    global _recommendation_cache
+    if _recommendation_cache is not None:
+        return _recommendation_cache
+
+    saved = Path(__file__).resolve().parent / "outputs" / "recommendations.txt"
+    if saved.exists():
+        picks = {}
+        for line in saved.read_text(encoding="utf-8").splitlines():
+            if line.startswith("[GEO]"):
+                orbit = "GEO"
+            elif line.startswith("[MEO1]"):
+                orbit = "MEO1"
+            elif line.startswith("[MEO2]"):
+                orbit = "MEO2"
+            elif "  PICK              : " in line:
+                picks[orbit] = line.split(":", 1)[1].strip()
+        if {"GEO", "MEO1", "MEO2"}.issubset(picks):
+            _recommendation_cache = picks
+            return picks
+
+    _recommendation_cache = recommend(run_leaderboard(include_test=False)[0])
+    return _recommendation_cache
 
 
 def _pick_model_for_orbit(orbit: str):
@@ -70,18 +97,20 @@ def _pick_model_for_orbit(orbit: str):
         if orbit in _model_cache:  # re-check after acquiring the lock
             return _model_cache[orbit], _model_names[orbit]
 
-        rows, _ = run_leaderboard(include_test=False)
-        recs = recommend(rows)
+        recs = _load_saved_recommendations()
 
         if orbit == "GEO":
             train, _ = load_dataset("GEO")
-            pick = recs["GEO"].pick
+            pick = recs["GEO"] if isinstance(recs["GEO"], str) else recs["GEO"].pick
         elif orbit == "MEO":
             train1, _ = load_dataset("MEO1")
             train2, _ = load_dataset("MEO2")
             train = combine(train1, train2)
             rec1, rec2 = recs["MEO1"], recs["MEO2"]
-            pick = rec1.pick if rec1.pick_W_holdout >= rec2.pick_W_holdout else rec2.pick
+            if isinstance(rec1, str):
+                pick = rec1
+            else:
+                pick = rec1.pick if rec1.pick_W_holdout >= rec2.pick_W_holdout else rec2.pick
         else:
             raise ValueError(f"unknown orbit {orbit!r}")
 

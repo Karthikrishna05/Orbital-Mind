@@ -778,6 +778,7 @@ function initResultsView() {
   const panelQQ = document.getElementById('panel-qq');
 
   function switchResultsOrbit(orbit) {
+    if (state.testResults[state.currentResultsOrbit]) return;
     if (state.currentResultsOrbit === orbit) return;
     state.currentResultsOrbit = orbit;
     orbitGeoToggle.classList.toggle('active', orbit === 'GEO');
@@ -834,6 +835,15 @@ async function loadResultsData() {
 function renderResultsForCurrentOrbit() {
   const orbit = state.currentResultsOrbit;
   const live = state.testResults[orbit];
+  const otherOrbit = orbit === 'GEO' ? 'MEO' : 'GEO';
+  const selectedToggle = document.getElementById(`res-toggle-${orbit.toLowerCase()}`);
+  const otherToggle = document.getElementById(`res-toggle-${otherOrbit.toLowerCase()}`);
+  if (live) {
+    selectedToggle?.classList.add('active');
+    otherToggle?.classList.add('results-orbit-hidden');
+    otherToggle?.setAttribute('aria-hidden', 'true');
+    otherToggle?.setAttribute('tabindex', '-1');
+  }
 
   if (live) {
     populateShapiroTable(live.shapiroWilk);

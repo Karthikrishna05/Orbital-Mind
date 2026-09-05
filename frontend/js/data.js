@@ -63,136 +63,81 @@ export const GNSS_DATA = {
     }
   },
 
-  // ── Real 13-Phase Development History ─────────────────────────────────────
-  // W = swtest (Shapiro-Francia when kurtosis>3, else Shapiro-Wilk), avg 4-channel
-  // Benchmark: W=0.9810, p=0.5840, H=0  |  H=0 = normality PASS (good)
+  // ── Updated Model Progression ─────────────────────────────────────────────
+  // W = swtest average across GEO, MEO1, and MEO2 day-8 evaluations.
   modelProgression: {
     iterations: [
       {
         id: 'phase1',
-        name: 'Ph.1: Harmonic Regression Baseline',
-        description: 'Robust Huber harmonic+polynomial regression on irregular timestamps. Own Shapiro-Wilk (Royston AS R94) implemented from scratch. Benchmark matched.',
-        rmsError: 15.45,
-        clockDriftRms: 15.45,
-        swW: 0.876,
-        reductionPct: '0.0% (baseline)'
+        name: 'Ph.1: Median Baseline',
+        description: 'Robust median baseline evaluated on GEO, MEO1, and MEO2. Average W=0.814884; channel W values: GEO 0.865/0.808/0.874/0.536, MEO1 0.824/0.930/0.844/0.939, MEO2 0.860/0.851/0.768/0.681.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.814884,
+        reductionPct: 'Baseline W=0.814884'
       },
       {
         id: 'phase2',
-        name: 'Ph.2: GP + Gradient Boosting + MLP',
-        description: 'GP (Matern+ExpSine), GBR (Huber loss), MLP on Fourier features. MLP posts W=0.898 but by widening residual spread — flagged as spread-gamer.',
-        rmsError: 15.07,
-        clockDriftRms: 15.07,
-        swW: 0.898,
-        reductionPct: '+0.022 W'
+        name: 'Ph.2: Robust Harmonic P1H1',
+        description: 'Robust harmonic model with first-order period and harmonic features. Average W=0.854974 across GEO, MEO1, and MEO2.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.854974,
+        reductionPct: '+0.040090 W'
       },
       {
         id: 'phase3',
-        name: 'Ph.3: Kalman LLT + Defensible Pick Guard',
-        description: 'Local-linear-trend Kalman for non-uniform dt. Defensible-pick guard rejects models gaming SW by spread inflation. 24 tests pass.',
-        rmsError: 15.02,
-        clockDriftRms: 15.02,
-        swW: 0.900,
-        reductionPct: '+0.024 W'
+        name: 'Ph.3: Robust Harmonic P2H2',
+        description: 'Expanded robust harmonic model with second-order period and harmonic features. Average W=0.858740 across GEO, MEO1, and MEO2.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.858740,
+        reductionPct: '+0.043856 W'
       },
       {
         id: 'phase4',
-        name: 'Ph.4: Per-Channel Selector Meta-Model',
-        description: 'Selects best model per channel (x, y, z, clock) via multi-fold validation. MEO1 improves W=0.944→0.958 passing all 4-channel normality tests.',
-        rmsError: 14.85,
-        clockDriftRms: 14.85,
-        swW: 0.907,
-        reductionPct: '+0.031 W'
+        name: 'Ph.4: Stacked Harmonic + Harmonic',
+        description: 'Two-stage residual-whitening stack using harmonic correction. Average W=0.864005 across GEO, MEO1, and MEO2.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.864005,
+        reductionPct: '+0.049121 W'
       },
       {
         id: 'phase5',
-        name: 'Ph.5: Fully Leak-Free Selection',
-        description: 'Model selection moved entirely to rolling CV inside training data. Day-8 used only as after-the-fact check. Selection-leakage test locked. 28 tests pass.',
-        rmsError: 15.05,
-        clockDriftRms: 15.05,
-        swW: 0.907,
-        reductionPct: 'Honest (no leakage)'
+        name: 'Ph.5: Clock Kalman',
+        description: 'Local-linear clock state estimation combined with the model pipeline. Average W=0.863542 across GEO, MEO1, and MEO2.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.863542,
+        reductionPct: '+0.048658 W'
       },
       {
         id: 'phase6',
-        name: 'Ph.6: Lomb-Scargle Period Detection',
-        description: 'Spectral analysis for irregular sampling feeds real orbital periods. Helps MEO; misleads GEO (15-min burst noise dominates vs 24h orbital signal).',
-        rmsError: 14.95,
-        clockDriftRms: 14.95,
-        swW: 0.892,
-        reductionPct: 'Mixed: MEO ↑, GEO no gain'
+        name: 'Ph.6: Segmented Clock',
+        description: 'Clock model fitted by upload segment to capture local drift behavior. Average W=0.881089 across GEO, MEO1, and MEO2.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.881089,
+        reductionPct: '+0.066205 W'
       },
       {
         id: 'phase7',
-        name: 'Ph.7: SARIMA + Stacking Meta-Learner',
-        description: 'SARIMA (resampled to uniform grid) barely above baseline. Stacking NNLS optimises accuracy ≠ normality, falls below incumbents. 33 tests pass.',
-        rmsError: 15.18,
-        clockDriftRms: 15.18,
-        swW: 0.881,
-        reductionPct: 'SARIMA < harmonic'
+        name: 'Ph.7: Kalman LLT',
+        description: 'Local-linear-trend Kalman model for irregular timestamps. Average W=0.870424 across GEO, MEO1, and MEO2.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.870424,
+        reductionPct: '+0.055540 W'
       },
       {
         id: 'phase8',
-        name: 'Ph.8: Fine-Tuning on Day-8 (OOF)',
-        description: 'Honest OOF fine-tuning on day-8 (rules-permitted). Result: HURTS all datasets. GEO −0.002, MEO1 −0.009, MEO2 −0.018. Day-8 adds no new systematic signal.',
-        rmsError: 15.39,
-        clockDriftRms: 15.39,
-        swW: 0.896,
-        reductionPct: 'Fine-tuning: negative gain'
-      },
-      {
-        id: 'phase9',
-        name: 'Ph.9: Regime-Matched Training',
-        description: 'Split training by 2h-coarse vs 15min-dense windows; route queries to matched sub-model. GEO W rises only by spread inflation (std 15→20 m). H=1 unchanged.',
-        rmsError: 20.10,
-        clockDriftRms: 20.10,
-        swW: 0.894,
-        reductionPct: 'Spread-gamer — rejected'
-      },
-      {
-        id: 'phase10',
-        name: 'Ph.10: Physics Features + Clock Kalman',
-        description: 'Solar geometry features (declination, eclipse-season). Two-state clock Kalman [bias, drift]. MEO2 clock channel: W 0.747→0.894 (genuine gain). 37 tests.',
-        rmsError: 15.05,
-        clockDriftRms: 14.80,
-        swW: 0.900,
-        reductionPct: 'MEO2 clock ↑ +0.147 W'
-      },
-      {
-        id: 'phase11',
-        name: 'Ph.11: Competitive Analysis + Validation',
-        description: 'Confirmed Shapiro-Francia is evaluator metric. MEO dedup validated (90→46, 244→143 real rows). One competitor uses QuantileTransformer to force-Gaussianise — rejected.',
-        rmsError: 15.05,
-        clockDriftRms: 14.80,
-        swW: 0.907,
-        reductionPct: 'Research phase'
-      },
-      {
-        id: 'phase12',
-        name: 'Ph.12: Change-Point Detection + Spike Risk',
-        description: 'Upload-reset detection on clock. Segmented Kalman fits current upload segment only. GEO clock W 0.571→0.737; MEO2 clock W 0.747→0.894. Spike-risk flag (recall=0.69).',
-        rmsError: 15.26,
-        clockDriftRms: 14.20,
-        swW: 0.909,
-        reductionPct: 'Clock channel fixed (+0.147)'
-      },
-      {
-        id: 'phase13',
-        name: 'Ph.13: Composite Model — Final',
-        description: 'x/y/z from stack_harmonic+harmonic, clock from segmented_clock. MEO2: 0.872→0.909. Results: MEO1 W=0.934 ✅ PASS | MEO2 W=0.909 ⚠️ PARTIAL | GEO W=0.837 ❌. 40 tests.',
-        rmsError: 15.26,
-        clockDriftRms: 14.20,
-        swW: 0.893,   // (0.837+0.934+0.909)/3 honest average
-        reductionPct: 'MEO1 ✅ | MEO2 ⚠️ | GEO ❌'
-      },
-      {
-        id: 'phase14',
-        name: 'Ph.14: Outlier-Resilient Protocol',
-        description: 'Applied 3.0-MAD filter to evaluation residuals to mathematically exclude human-triggered hardware glitches as per ISRO criteria. GEO W spikes to >0.96. 100% Honest PASS.',
-        rmsError: 2.33,
-        clockDriftRms: 2.21,
-        swW: 0.961,   // Filtered GEO score
-        reductionPct: 'GEO ✅ PASS (Filtered)'
+        name: 'Ph.8: Composite Position + Clock',
+        description: 'Composite model combining position and clock components. Average W=0.889445 across GEO, MEO1, and MEO2; highest average in this evaluation set.',
+        rmsError: 0,
+        clockDriftRms: 0,
+        swW: 0.889445,
+        reductionPct: '+0.074561 W'
       }
     ]
   },
