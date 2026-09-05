@@ -64,6 +64,13 @@ export ORBITALMIND_DATA_DIR=/path/to/Data_PS-08
 
 The dataset should contain the GEO and MEO training and test CSV files.
 
+The complete dataset is required for the project workflow. The backend fits its
+models from the training CSVs when it starts processing inference requests and
+caches those models in memory for subsequent uploads. The test CSVs are used by
+the evaluation, backtesting, and submission workflows. The reference files are
+used by the validation tests. Because trained models are not stored as permanent
+artifacts, keep the training data available whenever the backend is restarted.
+
 ## Run Experiments
 
 ```bash
@@ -107,6 +114,10 @@ Start the inference API:
 ```bash
 python server.py
 ```
+
+Keep the backend running while uploading test files. It trains and caches the
+appropriate GEO or MEO model from the available training data, then reuses that
+model for additional uploaded test files during the same session.
 
 In another terminal, serve the frontend:
 
